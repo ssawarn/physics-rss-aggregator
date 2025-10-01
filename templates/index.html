@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Physics Topic RSS Aggregator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+    h1 { margin-bottom: 0.5rem; }
+    form { margin: 1rem 0; display: flex; gap: 0.5rem; }
+    input[type="text"] { flex: 1; padding: 0.6rem; font-size: 1rem; }
+    button { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
+    .item { border-bottom: 1px solid #e5e5e5; padding: 0.75rem 0; }
+    .meta { color: #666; font-size: 0.9rem; }
+    .source { color: #555; font-size: 0.85rem; }
+    .count { margin: 0.5rem 0 1rem; color: #333; }
+    .hint { color: #666; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <h1>Physics Topic RSS Aggregator</h1>
+  <div class="hint">
+    Try topics like: ion trap, trapped-ion, "quantum networks", NV center, Rydberg atoms, cavity QED.
+  </div>
+  <form id="searchForm">
+    <input id="topicInput" type="text" placeholder="Enter topic (e.g., ion-trap, quantum networks)" required>
+    <button type="submit">Search</button>
+  </form>
+  <div id="status"></div>
+  <div id="results"></div>
+
+<script>
+const form = document.getElementById('searchForm');
+const topicInput = document.getElementById('topicInput');
+const statusEl = document.getElementById('status');
+const resultsEl = document.getElementById('results');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const topic = topicInput.value.trim();
+  if (!topic) return;
+  resultsEl.innerHTML = '';
+  statusEl.textContent = 'Loading...';
+  try {
+    const r = await fetch(`/api/search?topic=${encodeURIComponent(topic)}`);
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    statusEl.textContent = `Found ${data.count} items for "${data.topic}".`;
+    renderResults(data.items);
+  } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+  }
+});
+
+function renderResults(items) {
+  resultsEl.innerHTML = '';
+  for (const it of items) {
+    const d = new Date((it.published_ts || Date.now()) * 1000);
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div><a href="${it.link}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title || 'Untitled')}</a></div>
+      <div class="meta">${escapeHtml(it.authors || '')}</div>
+      <div class="source">${escapeHtml(it.source || '')} — ${d.toLocaleString()}</div>
+      <div>${escapeHtml((it.summary || '').slice(0, 500))}</div>
+    `;
+    resultsEl.appendChild(div);
+  }
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": ''''
+  }[c]));
+}
+</script>
+</body>
+</html>
