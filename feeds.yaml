@@ -1,0 +1,18 @@
+normal_feeds:
+  # APS (American Physical Society)
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+
+  # Nature journals (general but high-signal for these topics)
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+
+  # Quantum journal (broad but relevant)
+  - https://quantum-journal.org/feed/
+
+arxiv:
+  max_results: 100
+  sort_by: submittedDate
+  sort_order: descending
