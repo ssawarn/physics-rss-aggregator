@@ -1,18 +1,15 @@
 # RSS Feed Configuration for Physics Topics
 # Contains both topic-specific feeds and general feeds for all topics
-
 # General RSS feeds used for all topics  
 normal_feeds:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
-  - https://journals.aps.org/prapplied/rss/current.xml
-  - https://journals.aps.org/prb/rss/current.xml
+  # PubMed RSS feeds for Physical Review journals
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  # Nature journals
   - https://www.nature.com/nphys.rss
   - https://www.nature.com/npjqi.rss
   - https://www.nature.com/nature.rss
   - https://www.nature.com/ncomms.rss
+  # Science journals
   - https://www.science.org/rss/news_current.xml
   - https://www.science.org/rss/advances_current.xml
   - https://quantum-journal.org/feed/
@@ -26,50 +23,32 @@ normal_feeds:
 
 # Topic-specific feed configurations (for potential future use)
 ion-trap:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/quant-ph
 
 trapped-ion:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/quant-ph
 
 quantum-networks:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.optics
 
 cavity-qed:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.optics
 
 quantum-networks-ion:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.atom-ph
 
 quantum-networks-neutral:
-  - https://journals.aps.org/prl/rss/current.xml
-  - https://journals.aps.org/pra/rss/current.xml
-  - https://journals.aps.org/prx/rss/current.xml
-  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/physics.optics
