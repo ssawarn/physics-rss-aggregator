@@ -16,6 +16,9 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     Returns:
         list: List of feed items with title, abstract, source, and date
     """
+    # Replace dashes with spaces in topic for better keyword matching
+    topic = topic.replace('-', ' ')
+    
     # Load feeds from feeds.yaml
     try:
         with open('feeds.yaml', 'r') as f:
@@ -35,7 +38,7 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     results = []
     
     # Check if this is a combined filter topic
-    is_quantum_networks_combined = 'quantum-networks' in topic.lower() and ('ion' in topic.lower() or 'atom' in topic.lower())
+    is_quantum_networks_combined = 'quantum networks' in topic.lower() and ('ion' in topic.lower() or 'atom' in topic.lower())
     
     for feed_url in topic_feeds:
         try:
