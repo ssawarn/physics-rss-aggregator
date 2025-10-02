@@ -6,7 +6,6 @@ import yaml
 from typing import Dict, List, Any
 import re
 
-
 async def aggregate(topic: str) -> List[Dict[str, Any]]:
     """
     Aggregate RSS feeds for a given topic.
@@ -24,8 +23,9 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     except FileNotFoundError:
         return []
     
-    # Get feeds for the topic
-    topic_feeds = feeds_config.get(topic, [])
+    # Get feeds from 'normal_feeds' key in YAML config
+    # This allows all RSS feeds to be accessible for every topic
+    topic_feeds = feeds_config.get('normal_feeds', [])
     if not topic_feeds:
         return []
     
