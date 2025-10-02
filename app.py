@@ -33,6 +33,10 @@ PREFETCH_TS = 0
 def canonical(s: str) -> str:
     return s.lower().strip().replace(" ", "-").replace("_", "-")
 
+def normalize_topic(topic: str) -> str:
+    """Normalize topic by replacing dashes with spaces for keyword matching."""
+    return topic.replace('-', ' ')
+
 def filter_and_group_recent(items, cutoff_days=60):
     from datetime import datetime, timedelta
     cutoff = datetime.now() - timedelta(days=cutoff_days)
@@ -53,6 +57,8 @@ async def root(request: Request):
 def _handle_topic_request(topic: str):
     """Shared logic for both /rss/{topic} and /feed/{topic} endpoints"""
     topic_key = topic.lower().strip()
+    # Normalize topic for aggregate function (replace dashes with spaces)
+    normalized_topic = normalize_topic(topic_key)
     
     # Check cache first
     if topic_key in CACHE:
@@ -84,7 +90,7 @@ def _handle_topic_request(topic: str):
         }
     else:
         try:
-            items = asyncio.run(aggregate(topic_key))
+            items = asyncio.run(aggregate(normalized_topic))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         grouped = filter_and_group_recent(items)
