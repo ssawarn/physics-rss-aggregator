@@ -1,78 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Physics Topic RSS Aggregator</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
-    h1 { margin-bottom: 0.5rem; }
-    form { margin: 1rem 0; display: flex; gap: 0.5rem; }
-    input[type="text"] { flex: 1; padding: 0.6rem; font-size: 1rem; }
-    button { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
-    .item { border-bottom: 1px solid #e5e5e5; padding: 0.75rem 0; }
-    .meta { color: #666; font-size: 0.9rem; }
-    .source { color: #555; font-size: 0.85rem; }
-    .count { margin: 0.5rem 0 1rem; color: #333; }
-    .hint { color: #666; font-size: 0.95rem; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
+    h1 { margin-bottom: 1rem; color: #222; }
+    .topic-section { margin-bottom: 3rem; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .topic-title { font-size: 1.5rem; margin-bottom: 1rem; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem; }
+    .item { border-bottom: 1px solid #e5e5e5; padding: 1rem 0; }
+    .item:last-child { border-bottom: none; }
+    .item-title { font-size: 1.1rem; margin-bottom: 0.3rem; }
+    .item-title a { color: #0066cc; text-decoration: none; }
+    .item-title a:hover { text-decoration: underline; }
+    .meta { color: #666; font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .source { color: #555; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .summary { color: #444; font-size: 0.95rem; line-height: 1.5; }
+    .count { color: #888; font-size: 0.9rem; margin-bottom: 1rem; }
+    .loading { text-align: center; padding: 2rem; color: #666; }
   </style>
 </head>
 <body>
   <h1>Physics Topic RSS Aggregator</h1>
-  <div class="hint">
-    Try topics like: ion trap, trapped-ion, "quantum networks", NV center, Rydberg atoms, cavity QED.
-  </div>
-  <form id="searchForm">
-    <input id="topicInput" type="text" placeholder="Enter topic (e.g., ion-trap, quantum networks)" required>
-    <button type="submit">Search</button>
-  </form>
-  <div id="status"></div>
-  <div id="results"></div>
+  <div id="content" class="loading">Loading feeds...</div>
 
-<script>
-const form = document.getElementById('searchForm');
-const topicInput = document.getElementById('topicInput');
-const statusEl = document.getElementById('status');
-const resultsEl = document.getElementById('results');
+  <script>
+    const TOPICS = ['ion trap', 'trapped-ion', 'quantum networks', 'cavity QED'];
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const topic = topicInput.value.trim();
-  if (!topic) return;
-  resultsEl.innerHTML = '';
-  statusEl.textContent = 'Loading...';
-  try {
-    const r = await fetch(`/api/search?topic=${encodeURIComponent(topic)}`);
-    if (!r.ok) throw new Error(await r.text());
-    const data = await r.json();
-    statusEl.textContent = `Found ${data.count} items for "${data.topic}".`;
-    renderResults(data.items);
-  } catch (err) {
-    statusEl.textContent = 'Error: ' + err.message;
-  }
-});
+    async function loadAllTopics() {
+      const contentEl = document.getElementById('content');
+      contentEl.innerHTML = '';
 
-function renderResults(items) {
-  resultsEl.innerHTML = '';
-  for (const it of items) {
-    const d = new Date((it.published_ts || Date.now()) * 1000);
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <div><a href="${it.link}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title || 'Untitled')}</a></div>
-      <div class="meta">${escapeHtml(it.authors || '')}</div>
-      <div class="source">${escapeHtml(it.source || '')} — ${d.toLocaleString()}</div>
-      <div>${escapeHtml((it.summary || '').slice(0, 500))}</div>
-    `;
-    resultsEl.appendChild(div);
-  }
-}
+      for (const topic of TOPICS) {
+        try {
+          const r = await fetch(`/api/search?topic=${encodeURIComponent(topic)}`);
+          if (!r.ok) throw new Error(await r.text());
+          const data = await r.json();
+          
+          const section = document.createElement('div');
+          section.className = 'topic-section';
+          
+          const titleEl = document.createElement('h2');
+          titleEl.className = 'topic-title';
+          titleEl.textContent = data.topic || topic;
+          section.appendChild(titleEl);
+          
+          const countEl = document.createElement('div');
+          countEl.className = 'count';
+          countEl.textContent = `${data.count || 0} items found`;
+          section.appendChild(countEl);
+          
+          const items = data.items || [];
+          if (items.length === 0) {
+            const noItems = document.createElement('div');
+            noItems.className = 'meta';
+            noItems.textContent = 'No items available yet.';
+            section.appendChild(noItems);
+          } else {
+            for (const it of items) {
+              const itemDiv = document.createElement('div');
+              itemDiv.className = 'item';
+              
+              const d = new Date((it.published_ts || Date.now()) * 1000);
+              
+              itemDiv.innerHTML = `
+                <div class="item-title"><a href="${it.link}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title || 'Untitled')}</a></div>
+                ${it.authors ? `<div class="meta">Authors: ${escapeHtml(it.authors)}</div>` : ''}
+                <div class="source">${escapeHtml(it.source || '')} — ${d.toLocaleString()}</div>
+                ${it.summary ? `<div class="summary">${escapeHtml((it.summary || '').slice(0, 500))}${(it.summary || '').length > 500 ? '...' : ''}</div>` : ''}
+              `;
+              
+              section.appendChild(itemDiv);
+            }
+          }
+          
+          contentEl.appendChild(section);
+        } catch (err) {
+          const section = document.createElement('div');
+          section.className = 'topic-section';
+          section.innerHTML = `
+            <h2 class="topic-title">${escapeHtml(topic)}</h2>
+            <div class="meta">Error loading: ${escapeHtml(err.message)}</div>
+          `;
+          contentEl.appendChild(section);
+        }
+      }
+    }
 
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": ''''
-  }[c]));
-}
-</script>
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    // Load all topics on page load
+    loadAllTopics();
+  </script>
 </body>
 </html>
