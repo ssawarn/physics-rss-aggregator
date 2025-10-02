@@ -29,21 +29,21 @@
   <h1>Physics Topic RSS Aggregator</h1>
   <div id="content" class="loading">Loading feeds...</div>
   <script>
-    const TOPICS = ['ion trap', 'trapped-ion', 'quantum networks', 'cavity QED'];
+    const TOPICS = ['ion trap', 'trapped-ion', 'quantum networks', 'cavity QED', 'quantum networks & ion', 'quantum networks & neutral'];
     const JOURNALS = ['Nature', 'Nature Physics', 'Science', 'PRL', 'PRA', 'PRX', 'PRX Quantum', 'Physical Review Letters', 'Physical Review A', 'arXiv', 'Other'];
     
-    // Calculate date 2 months ago
-    function getTwoMonthsAgo() {
+    // Calculate date 6 months ago
+    function getSixMonthsAgo() {
       const date = new Date();
-      date.setMonth(date.getMonth() - 2);
+      date.setMonth(date.getMonth() - 6);
       return date;
     }
     
-    // Check if item is within last 2 months
+    // Check if item is within last 6 months
     function isRecent(dateStr) {
       if (!dateStr) return true; // Include if no date
       const itemDate = new Date(dateStr);
-      return itemDate >= getTwoMonthsAgo();
+      return itemDate >= getSixMonthsAgo();
     }
     
     // Extract journal name from source
@@ -61,111 +61,75 @@
       return 'Other';
     }
     
-    // Check if item matches quantum networks + (neutral atom OR trapped ion)
-    function isSpecialItem(item, topic) {
-      const title = (item.title || '').toLowerCase();
-      const summary = (item.summary || '').toLowerCase();
-      const content = title + ' ' + summary;
-      
-      const hasQuantumNetworks = content.includes('quantum network');
-      const hasNeutralAtom = content.includes('neutral atom');
-      const hasTrappedIon = content.includes('trapped ion') || content.includes('trapped-ion') || content.includes('ion trap');
-      
-      return hasQuantumNetworks && (hasNeutralAtom || hasTrappedIon);
-    }
-    
+    // Fetch all topics
     async function loadAllTopics() {
       const contentEl = document.getElementById('content');
-      contentEl.innerHTML = '';
+      contentEl.innerHTML = '<div class="loading">Loading feeds...</div>';
       
-      // Data structure: journal -> topic -> items
-      const journalData = {};
-      const specialItems = [];
+      const allData = {};
       
-      // Fetch all topics
+      // Fetch data for each topic
       for (const topic of TOPICS) {
         try {
-          const r = await fetch(`/rss/${encodeURIComponent(topic)}`);
-          if (!r.ok) throw new Error(await r.text());
-          const data = await r.json();
+          const response = await fetch(`/feed/${encodeURIComponent(topic)}`);
+          const data = await response.json();
           
-          const items = data.items || [];
-          
-          // Filter and organize items
-          for (const item of items) {
-            // Filter: only last 2 months
-            if (!isRecent(item.published || item.pubDate)) continue;
-            
-            // Check for special items
-            if (isSpecialItem(item, topic)) {
-              specialItems.push({...item, topic: data.topic || topic});
+          // Filter recent items and organize by journal
+          data.items.forEach(item => {
+            if (isRecent(item.published || item.pubDate)) {
+              const journal = getJournal(item.source);
+              
+              if (!allData[journal]) {
+                allData[journal] = {};
+              }
+              if (!allData[journal][topic]) {
+                allData[journal][topic] = [];
+              }
+              allData[journal][topic].push(item);
             }
-            
-            // Group by journal
-            const journal = getJournal(item.source);
-            if (!journalData[journal]) journalData[journal] = {};
-            if (!journalData[journal][topic]) journalData[journal][topic] = [];
-            journalData[journal][topic].push(item);
-          }
-        } catch (e) {
-          console.error(`Error loading topic ${topic}:`, e);
+          });
+        } catch (error) {
+          console.error(`Error loading topic ${topic}:`, error);
         }
       }
       
-      // Render special section first
-      if (specialItems.length > 0) {
-        const specialSection = document.createElement('div');
-        specialSection.className = 'journal-section special-section';
-        
-        const titleEl = document.createElement('h2');
-        titleEl.className = 'journal-title';
-        titleEl.textContent = '🌟 Quantum Networks + (Neutral Atom OR Trapped Ion)';
-        specialSection.appendChild(titleEl);
-        
-        const countEl = document.createElement('div');
-        countEl.className = 'count';
-        countEl.textContent = `${specialItems.length} items found`;
-        specialSection.appendChild(countEl);
-        
-        for (const item of specialItems) {
-          specialSection.appendChild(createItemElement(item, item.topic));
-        }
-        
-        contentEl.appendChild(specialSection);
-      }
+      // Clear loading message
+      contentEl.innerHTML = '';
       
-      // Render by journal
+      // Render by journal, then by topic
       for (const journal of JOURNALS) {
-        if (!journalData[journal]) continue;
+        if (!allData[journal]) continue;
         
         const journalSection = document.createElement('div');
         journalSection.className = 'journal-section';
+        if (journal === 'arXiv') {
+          journalSection.classList.add('special-section');
+        }
         
         const journalTitle = document.createElement('h2');
         journalTitle.className = 'journal-title';
         journalTitle.textContent = journal;
         journalSection.appendChild(journalTitle);
         
-        // Render each topic within journal
         for (const topic of TOPICS) {
-          if (!journalData[journal][topic] || journalData[journal][topic].length === 0) continue;
+          if (!allData[journal][topic] || allData[journal][topic].length === 0) continue;
           
           const topicSubsection = document.createElement('div');
           topicSubsection.className = 'topic-subsection';
           
           const topicSubheading = document.createElement('h3');
           topicSubheading.className = 'topic-subheading';
-          topicSubheading.textContent = `${topic} | ${journal}`;
+          topicSubheading.textContent = topic;
           topicSubsection.appendChild(topicSubheading);
           
-          const countEl = document.createElement('div');
-          countEl.className = 'count';
-          countEl.textContent = `${journalData[journal][topic].length} items`;
-          topicSubsection.appendChild(countEl);
+          const countDiv = document.createElement('div');
+          countDiv.className = 'count';
+          countDiv.textContent = `${allData[journal][topic].length} items`;
+          topicSubsection.appendChild(countDiv);
           
-          for (const item of journalData[journal][topic]) {
+          allData[journal][topic].forEach(item => {
             topicSubsection.appendChild(createItemElement(item, topic));
-          }
+          });
           
           journalSection.appendChild(topicSubsection);
         }
@@ -174,7 +138,7 @@
       }
       
       if (contentEl.children.length === 0) {
-        contentEl.innerHTML = '<div class="loading">No items found in the last 2 months.</div>';
+        contentEl.innerHTML = '<div class="loading">No items found in the last 6 months.</div>';
       }
     }
     
