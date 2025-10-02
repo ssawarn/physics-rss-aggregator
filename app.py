@@ -1,7 +1,7 @@
 import os
 import asyncio
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from feed_aggregator import aggregate
 import time
@@ -41,6 +41,30 @@ def filter_and_group_recent(items, cutoff_days=60):
                 src = item.get("source", "Unknown")
                 grouped.setdefault(src, []).append(item)
     return grouped
+
+@app.get("/", response_class=HTMLResponse)
+def root():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Physics RSS Aggregator</title>
+    </head>
+    <body>
+        <h1>Welcome to Physics RSS Aggregator</h1>
+        <p>This API aggregates RSS feeds for physics topics.</p>
+        <h2>Available Endpoints:</h2>
+        <ul>
+            <li><code>GET /</code> - This welcome page</li>
+            <li><code>GET /rss/{topic}</code> - Get aggregated RSS feeds for a specific physics topic</li>
+            <li><code>GET /health</code> - Health check endpoint</li>
+        </ul>
+        <h2>Example Usage:</h2>
+        <p><code>/rss/quantum-physics</code></p>
+        <p><code>/rss/astrophysics</code></p>
+    </body>
+    </html>
+    """
 
 @app.get("/rss/{topic}")
 def get_rss(topic: str):
@@ -85,7 +109,7 @@ def get_rss(topic: str):
             "items": sum(grouped.values(), []),
             "recent_grouped": grouped,
         }
-    CACHE.set(topic_key, payload)
+    CACHE[topic_key] = (payload, time.time())
     return JSONResponse(content=payload)
 
 @app.get("/health")
