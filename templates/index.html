@@ -11,7 +11,13 @@
     .journal-section { margin-bottom: 3rem; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .journal-title { font-size: 1.8rem; margin-bottom: 1.5rem; color: #333; border-bottom: 3px solid #0066cc; padding-bottom: 0.5rem; }
     .topic-subsection { margin-bottom: 2rem; padding-left: 1rem; border-left: 3px solid #e5e5e5; }
-    .topic-subheading { font-size: 1.3rem; margin-bottom: 0.8rem; color: #0066cc; font-weight: 600; }
+    .topic-dropdown-header { display: flex; align-items: center; cursor: pointer; padding: 0.5rem 0; border-bottom: 1px solid #ddd; margin-bottom: 1rem; }
+    .topic-dropdown-header:hover { background: #f5f5f5; margin: 0 -0.5rem; padding: 0.5rem; border-radius: 4px; }
+    .topic-subheading { font-size: 1.3rem; margin: 0; color: #0066cc; font-weight: 600; flex-grow: 1; }
+    .dropdown-arrow { font-size: 1.2rem; color: #666; margin-right: 0.5rem; transition: transform 0.2s ease; }
+    .dropdown-arrow.expanded { transform: rotate(90deg); }
+    .topic-items { display: none; }
+    .topic-items.expanded { display: block; }
     .item { border-bottom: 1px solid #e5e5e5; padding: 1.2rem 0; }
     .item:last-child { border-bottom: none; }
     .item-title { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600; }
@@ -20,7 +26,7 @@
     .meta { color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; }
     .source { color: #555; font-size: 0.85rem; margin-bottom: 0.5rem; font-style: italic; }
     .abstract { color: #444; font-size: 0.95rem; line-height: 1.6; margin-top: 0.8rem; padding: 0.8rem; background: #f5f5f5; border-radius: 4px; max-height: 200px; overflow-y: auto; }
-    .count { color: #888; font-size: 0.9rem; margin-bottom: 1rem; }
+    .count { color: #888; font-size: 0.9rem; }
     .loading { text-align: center; padding: 2rem; color: #666; }
     .special-section { background: #fff8e1; border-left: 4px solid #ffa726; }
     .special-section .journal-title { color: #f57c00; border-bottom-color: #ffa726; }
@@ -41,7 +47,7 @@
       'quantum-networks-ion': 'Quantum Networks & Ion',
       'quantum-networks-neutral': 'Quantum Networks & Neutral'
     };
-    const JOURNALS = ['Nature', 'Nature Physics', 'Science', 'PRL', 'PRA', 'PRX', 'PRX Quantum', 'Physical Review Letters', 'Physical Review A', 'arXiv', 'Other'];
+    const JOURNALS = ['arXiv', 'Nature', 'Nature Physics', 'Science', 'PRL', 'PRA', 'PRX', 'PRX Quantum', 'Physical Review Letters', 'Physical Review A', 'Other'];
     
     // Calculate date 2 months ago (per backend filter)
     function getTwoMonthsAgo() {
@@ -70,6 +76,20 @@
       if (s.includes('physical review a') || s.includes('pra')) return 'PRA';
       if (s.includes('arxiv')) return 'arXiv';
       return 'Other';
+    }
+    
+    // Toggle dropdown
+    function toggleDropdown(topicId) {
+      const items = document.getElementById(`items-${topicId}`);
+      const arrow = document.getElementById(`arrow-${topicId}`);
+      
+      if (items.classList.contains('expanded')) {
+        items.classList.remove('expanded');
+        arrow.classList.remove('expanded');
+      } else {
+        items.classList.add('expanded');
+        arrow.classList.add('expanded');
+      }
     }
     
     // Fetch all topics
@@ -123,7 +143,7 @@
       contentEl.innerHTML = '';
       debugEl.innerHTML += '<br><strong>Summary:</strong><br>' + debugInfo.join('<br>');
       
-      // Render by journal, then by topic
+      // Render by journal, then by topic with dropdowns
       let totalItems = 0;
       for (const journal of JOURNALS) {
         if (!allData[journal]) continue;
@@ -145,22 +165,44 @@
           const topicSubsection = document.createElement('div');
           topicSubsection.className = 'topic-subsection';
           
+          // Create unique ID for this topic-journal combination
+          const topicId = `${journal.replace(/\s+/g, '-').toLowerCase()}-${topic}`;
+          
+          // Dropdown header
+          const dropdownHeader = document.createElement('div');
+          dropdownHeader.className = 'topic-dropdown-header';
+          dropdownHeader.onclick = () => toggleDropdown(topicId);
+          
+          const arrow = document.createElement('span');
+          arrow.className = 'dropdown-arrow';
+          arrow.id = `arrow-${topicId}`;
+          arrow.textContent = '▶';
+          
           const topicSubheading = document.createElement('h3');
           topicSubheading.className = 'topic-subheading';
           topicSubheading.textContent = TOPIC_DISPLAY[topic] || topic.replace(/-/g, ' ');
-          topicSubsection.appendChild(topicSubheading);
           
-          const countDiv = document.createElement('div');
-          countDiv.className = 'count';
-          countDiv.textContent = `${allData[journal][topic].length} items`;
-          topicSubsection.appendChild(countDiv);
+          const countSpan = document.createElement('span');
+          countSpan.className = 'count';
+          countSpan.textContent = `(${allData[journal][topic].length} items)`;
+          
+          dropdownHeader.appendChild(arrow);
+          dropdownHeader.appendChild(topicSubheading);
+          dropdownHeader.appendChild(countSpan);
+          topicSubsection.appendChild(dropdownHeader);
+          
+          // Items container (initially hidden)
+          const itemsContainer = document.createElement('div');
+          itemsContainer.className = 'topic-items';
+          itemsContainer.id = `items-${topicId}`;
           
           totalItems += allData[journal][topic].length;
           
           allData[journal][topic].forEach(item => {
-            topicSubsection.appendChild(createItemElement(item, topic));
+            itemsContainer.appendChild(createItemElement(item, topic));
           });
           
+          topicSubsection.appendChild(itemsContainer);
           journalSection.appendChild(topicSubsection);
         }
         
