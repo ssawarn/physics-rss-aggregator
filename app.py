@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from feed_aggregator import aggregate
+from feed_aggregator import aggregate, get_feed_stats
 import time
 
 app = FastAPI()
@@ -64,6 +64,8 @@ def _handle_topic_request(topic: str):
     if topic_key in CACHE:
         cached_data, cached_time = CACHE[topic_key]
         if time.time() - cached_time < CACHE_TTL:
+            # Add fresh feed stats to cached response
+            cached_data['feed_stats'] = get_feed_stats()
             return JSONResponse(content=cached_data)
     
     # baseline
@@ -87,6 +89,7 @@ def _handle_topic_request(topic: str):
             "count": sum(len(v) for v in grouped.values()),
             "items": sum(grouped.values(), []),   # flattened list for backward compat
             "recent_grouped": grouped,
+            "feed_stats": get_feed_stats()
         }
     else:
         try:
@@ -99,6 +102,7 @@ def _handle_topic_request(topic: str):
             "count": sum(len(v) for v in grouped.values()),
             "items": sum(grouped.values(), []),
             "recent_grouped": grouped,
+            "feed_stats": get_feed_stats()
         }
     
     CACHE[topic_key] = (payload, time.time())
@@ -111,6 +115,28 @@ def get_rss(topic: str):
 @app.get("/feed/{topic}")
 def get_feed(topic: str):
     return _handle_topic_request(topic)
+
+@app.get("/debug/{topic}")
+def get_debug_stats(topic: str):
+    """Get debugging statistics for a topic."""
+    topic_key = topic.lower().strip()
+    normalized_topic = normalize_topic(topic_key)
+    
+    try:
+        # Force fresh aggregation for debugging
+        items = asyncio.run(aggregate(normalized_topic))
+        grouped = filter_and_group_recent(items)
+        
+        return JSONResponse(content={
+            "topic": topic_key,
+            "normalized_topic": normalized_topic,
+            "feed_stats": get_feed_stats(),
+            "total_items": len(items),
+            "grouped_count": sum(len(v) for v in grouped.values()),
+            "recent_grouped": grouped
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 def health():
