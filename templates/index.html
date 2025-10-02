@@ -7,95 +7,227 @@
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
     h1 { margin-bottom: 1rem; color: #222; }
-    .topic-section { margin-bottom: 3rem; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .topic-title { font-size: 1.5rem; margin-bottom: 1rem; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem; }
-    .item { border-bottom: 1px solid #e5e5e5; padding: 1rem 0; }
+    .journal-section { margin-bottom: 3rem; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .journal-title { font-size: 1.8rem; margin-bottom: 1.5rem; color: #333; border-bottom: 3px solid #0066cc; padding-bottom: 0.5rem; }
+    .topic-subsection { margin-bottom: 2rem; padding-left: 1rem; border-left: 3px solid #e5e5e5; }
+    .topic-subheading { font-size: 1.3rem; margin-bottom: 0.8rem; color: #0066cc; font-weight: 600; }
+    .item { border-bottom: 1px solid #e5e5e5; padding: 1.2rem 0; }
     .item:last-child { border-bottom: none; }
-    .item-title { font-size: 1.1rem; margin-bottom: 0.3rem; }
+    .item-title { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600; }
     .item-title a { color: #0066cc; text-decoration: none; }
     .item-title a:hover { text-decoration: underline; }
-    .meta { color: #666; font-size: 0.9rem; margin-bottom: 0.3rem; }
-    .source { color: #555; font-size: 0.85rem; margin-bottom: 0.5rem; }
-    .summary { color: #444; font-size: 0.95rem; line-height: 1.5; }
+    .meta { color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .source { color: #555; font-size: 0.85rem; margin-bottom: 0.5rem; font-style: italic; }
+    .abstract { color: #444; font-size: 0.95rem; line-height: 1.6; margin-top: 0.8rem; padding: 0.8rem; background: #f5f5f5; border-radius: 4px; max-height: 200px; overflow-y: auto; }
     .count { color: #888; font-size: 0.9rem; margin-bottom: 1rem; }
     .loading { text-align: center; padding: 2rem; color: #666; }
+    .special-section { background: #fff8e1; border-left: 4px solid #ffa726; }
+    .special-section .journal-title { color: #f57c00; border-bottom-color: #ffa726; }
   </style>
 </head>
 <body>
   <h1>Physics Topic RSS Aggregator</h1>
   <div id="content" class="loading">Loading feeds...</div>
-
   <script>
     const TOPICS = ['ion trap', 'trapped-ion', 'quantum networks', 'cavity QED'];
-
+    const JOURNALS = ['Nature', 'Nature Physics', 'Science', 'PRL', 'PRA', 'PRX', 'PRX Quantum', 'Physical Review Letters', 'Physical Review A', 'arXiv', 'Other'];
+    
+    // Calculate date 2 months ago
+    function getTwoMonthsAgo() {
+      const date = new Date();
+      date.setMonth(date.getMonth() - 2);
+      return date;
+    }
+    
+    // Check if item is within last 2 months
+    function isRecent(dateStr) {
+      if (!dateStr) return true; // Include if no date
+      const itemDate = new Date(dateStr);
+      return itemDate >= getTwoMonthsAgo();
+    }
+    
+    // Extract journal name from source
+    function getJournal(source) {
+      if (!source) return 'Other';
+      const s = source.toLowerCase();
+      if (s.includes('nature physics')) return 'Nature Physics';
+      if (s.includes('nature')) return 'Nature';
+      if (s.includes('science')) return 'Science';
+      if (s.includes('prx quantum')) return 'PRX Quantum';
+      if (s.includes('prx')) return 'PRX';
+      if (s.includes('physical review letters') || s.includes('prl')) return 'PRL';
+      if (s.includes('physical review a') || s.includes('pra')) return 'PRA';
+      if (s.includes('arxiv')) return 'arXiv';
+      return 'Other';
+    }
+    
+    // Check if item matches quantum networks + (neutral atom OR trapped ion)
+    function isSpecialItem(item, topic) {
+      const title = (item.title || '').toLowerCase();
+      const summary = (item.summary || '').toLowerCase();
+      const content = title + ' ' + summary;
+      
+      const hasQuantumNetworks = content.includes('quantum network');
+      const hasNeutralAtom = content.includes('neutral atom');
+      const hasTrappedIon = content.includes('trapped ion') || content.includes('trapped-ion') || content.includes('ion trap');
+      
+      return hasQuantumNetworks && (hasNeutralAtom || hasTrappedIon);
+    }
+    
     async function loadAllTopics() {
       const contentEl = document.getElementById('content');
       contentEl.innerHTML = '';
-
+      
+      // Data structure: journal -> topic -> items
+      const journalData = {};
+      const specialItems = [];
+      
+      // Fetch all topics
       for (const topic of TOPICS) {
         try {
           const r = await fetch(`/api/search?topic=${encodeURIComponent(topic)}`);
           if (!r.ok) throw new Error(await r.text());
           const data = await r.json();
           
-          const section = document.createElement('div');
-          section.className = 'topic-section';
+          const items = data.items || [];
           
-          const titleEl = document.createElement('h2');
-          titleEl.className = 'topic-title';
-          titleEl.textContent = data.topic || topic;
-          section.appendChild(titleEl);
+          // Filter and organize items
+          for (const item of items) {
+            // Filter: only last 2 months
+            if (!isRecent(item.published || item.pubDate)) continue;
+            
+            // Check for special items
+            if (isSpecialItem(item, topic)) {
+              specialItems.push({...item, topic: data.topic || topic});
+            }
+            
+            // Group by journal
+            const journal = getJournal(item.source);
+            if (!journalData[journal]) journalData[journal] = {};
+            if (!journalData[journal][topic]) journalData[journal][topic] = [];
+            journalData[journal][topic].push(item);
+          }
+        } catch (e) {
+          console.error(`Error loading topic ${topic}:`, e);
+        }
+      }
+      
+      // Render special section first
+      if (specialItems.length > 0) {
+        const specialSection = document.createElement('div');
+        specialSection.className = 'journal-section special-section';
+        
+        const titleEl = document.createElement('h2');
+        titleEl.className = 'journal-title';
+        titleEl.textContent = '🌟 Quantum Networks + (Neutral Atom OR Trapped Ion)';
+        specialSection.appendChild(titleEl);
+        
+        const countEl = document.createElement('div');
+        countEl.className = 'count';
+        countEl.textContent = `${specialItems.length} items found`;
+        specialSection.appendChild(countEl);
+        
+        for (const item of specialItems) {
+          specialSection.appendChild(createItemElement(item, item.topic));
+        }
+        
+        contentEl.appendChild(specialSection);
+      }
+      
+      // Render by journal
+      for (const journal of JOURNALS) {
+        if (!journalData[journal]) continue;
+        
+        const journalSection = document.createElement('div');
+        journalSection.className = 'journal-section';
+        
+        const journalTitle = document.createElement('h2');
+        journalTitle.className = 'journal-title';
+        journalTitle.textContent = journal;
+        journalSection.appendChild(journalTitle);
+        
+        // Render each topic within journal
+        for (const topic of TOPICS) {
+          if (!journalData[journal][topic] || journalData[journal][topic].length === 0) continue;
+          
+          const topicSubsection = document.createElement('div');
+          topicSubsection.className = 'topic-subsection';
+          
+          const topicSubheading = document.createElement('h3');
+          topicSubheading.className = 'topic-subheading';
+          topicSubheading.textContent = `${topic} | ${journal}`;
+          topicSubsection.appendChild(topicSubheading);
           
           const countEl = document.createElement('div');
           countEl.className = 'count';
-          countEl.textContent = `${data.count || 0} items found`;
-          section.appendChild(countEl);
+          countEl.textContent = `${journalData[journal][topic].length} items`;
+          topicSubsection.appendChild(countEl);
           
-          const items = data.items || [];
-          if (items.length === 0) {
-            const noItems = document.createElement('div');
-            noItems.className = 'meta';
-            noItems.textContent = 'No items available yet.';
-            section.appendChild(noItems);
-          } else {
-            for (const it of items) {
-              const itemDiv = document.createElement('div');
-              itemDiv.className = 'item';
-              
-              const d = new Date((it.published_ts || Date.now()) * 1000);
-              
-              itemDiv.innerHTML = `
-                <div class="item-title"><a href="${it.link}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title || 'Untitled')}</a></div>
-                ${it.authors ? `<div class="meta">Authors: ${escapeHtml(it.authors)}</div>` : ''}
-                <div class="source">${escapeHtml(it.source || '')} — ${d.toLocaleString()}</div>
-                ${it.summary ? `<div class="summary">${escapeHtml((it.summary || '').slice(0, 500))}${(it.summary || '').length > 500 ? '...' : ''}</div>` : ''}
-              `;
-              
-              section.appendChild(itemDiv);
-            }
+          for (const item of journalData[journal][topic]) {
+            topicSubsection.appendChild(createItemElement(item, topic));
           }
           
-          contentEl.appendChild(section);
-        } catch (err) {
-          const section = document.createElement('div');
-          section.className = 'topic-section';
-          section.innerHTML = `
-            <h2 class="topic-title">${escapeHtml(topic)}</h2>
-            <div class="meta">Error loading: ${escapeHtml(err.message)}</div>
-          `;
-          contentEl.appendChild(section);
+          journalSection.appendChild(topicSubsection);
         }
+        
+        contentEl.appendChild(journalSection);
+      }
+      
+      if (contentEl.children.length === 0) {
+        contentEl.innerHTML = '<div class="loading">No items found in the last 2 months.</div>';
       }
     }
-
-    function escapeHtml(s) {
-      return (s || '').replace(/[&<>"']/g, (c) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[c]));
+    
+    function createItemElement(item, topic) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'item';
+      
+      // Title
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'item-title';
+      if (item.link) {
+        const link = document.createElement('a');
+        link.href = item.link;
+        link.target = '_blank';
+        link.textContent = item.title || 'Untitled';
+        titleDiv.appendChild(link);
+      } else {
+        titleDiv.textContent = item.title || 'Untitled';
+      }
+      itemDiv.appendChild(titleDiv);
+      
+      // Metadata
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'meta';
+      const pubDate = item.published || item.pubDate || 'Date unknown';
+      metaDiv.textContent = `Published: ${pubDate}`;
+      itemDiv.appendChild(metaDiv);
+      
+      // Source
+      if (item.source) {
+        const sourceDiv = document.createElement('div');
+        sourceDiv.className = 'source';
+        sourceDiv.textContent = `Source: ${item.source}`;
+        itemDiv.appendChild(sourceDiv);
+      }
+      
+      // Abstract/Summary
+      if (item.summary || item.description) {
+        const abstractDiv = document.createElement('div');
+        abstractDiv.className = 'abstract';
+        const abstractText = item.summary || item.description;
+        // Remove HTML tags if present
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = abstractText;
+        abstractDiv.textContent = tempDiv.textContent || tempDiv.innerText || abstractText;
+        itemDiv.appendChild(abstractDiv);
+      }
+      
+      return itemDiv;
     }
-
-    // Load all topics on page load
-    loadAllTopics();
+    
+    // Load on page load
+    window.addEventListener('DOMContentLoaded', loadAllTopics);
   </script>
 </body>
 </html>
