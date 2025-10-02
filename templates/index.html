@@ -85,15 +85,16 @@
       // Fetch data for each topic
       for (const topic of TOPICS) {
         try {
-          debugEl.innerHTML += `Fetching topic: ${topic}...<br>`;
+          const topicDisplay = topic.replace(/-/g, ' ');
+          debugEl.innerHTML += `Fetching topic: ${topicDisplay}...<br>`;
           const response = await fetch(`/rss/${encodeURIComponent(topic)}`);
           if (!response.ok) {
-            debugEl.innerHTML += `  ❌ Error ${response.status} for ${topic}<br>`;
+            debugEl.innerHTML += `  ❌ Error ${response.status} for ${topicDisplay}<br>`;
             continue;
           }
           const data = await response.json();
-          debugEl.innerHTML += `  ✓ Got ${data.count || 0} items for ${topic}<br>`;
-          debugInfo.push(`${topic}: ${data.count || 0} items`);
+          debugEl.innerHTML += `  ✓ Got ${data.count || 0} items for ${topicDisplay}<br>`;
+          debugInfo.push(`${topicDisplay}: ${data.count || 0} items`);
           
           // Filter recent items and organize by journal
           if (data.items && data.items.length > 0) {
@@ -112,7 +113,8 @@
             });
           }
         } catch (error) {
-          debugEl.innerHTML += `  ❌ Exception for ${topic}: ${error.message}<br>`;
+          const topicDisplay = topic.replace(/-/g, ' ');
+          debugEl.innerHTML += `  ❌ Exception for ${topicDisplay}: ${error.message}<br>`;
           console.error(`Error loading topic ${topic}:`, error);
         }
       }
@@ -145,7 +147,7 @@
           
           const topicSubheading = document.createElement('h3');
           topicSubheading.className = 'topic-subheading';
-          topicSubheading.textContent = TOPIC_DISPLAY[topic] || topic;
+          topicSubheading.textContent = TOPIC_DISPLAY[topic] || topic.replace(/-/g, ' ');
           topicSubsection.appendChild(topicSubheading);
           
           const countDiv = document.createElement('div');
