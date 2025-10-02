@@ -85,7 +85,7 @@
       // Fetch all topics
       for (const topic of TOPICS) {
         try {
-          const r = await fetch(`/api/search?topic=${encodeURIComponent(topic)}`);
+          const r = await fetch(`/rss/${encodeURIComponent(topic)}`);
           if (!r.ok) throw new Error(await r.text());
           const data = await r.json();
           
