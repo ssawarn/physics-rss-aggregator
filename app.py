@@ -50,8 +50,8 @@ def filter_and_group_recent(items, cutoff_days=60):
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/rss/{topic}")
-def get_rss(topic: str):
+def _handle_topic_request(topic: str):
+    """Shared logic for both /rss/{topic} and /feed/{topic} endpoints"""
     topic_key = topic.lower().strip()
     
     # Check cache first
@@ -72,6 +72,7 @@ def get_rss(topic: str):
                 if canonical(k) in key_can or key_can in canonical(k):
                     baseline = payload
                     break
+    
     if baseline:
         # Use prefetched items but apply 2-month filter again (fresh cutoff)
         grouped = filter_and_group_recent(baseline.get("items", []))
@@ -93,8 +94,17 @@ def get_rss(topic: str):
             "items": sum(grouped.values(), []),
             "recent_grouped": grouped,
         }
+    
     CACHE[topic_key] = (payload, time.time())
     return JSONResponse(content=payload)
+
+@app.get("/rss/{topic}")
+def get_rss(topic: str):
+    return _handle_topic_request(topic)
+
+@app.get("/feed/{topic}")
+def get_feed(topic: str):
+    return _handle_topic_request(topic)
 
 @app.get("/health")
 def health():
