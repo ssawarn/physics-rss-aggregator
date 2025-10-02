@@ -1,25 +1,97 @@
-normal_feeds:
-  # APS (American Physical Society)
+# RSS Feed Configuration for Physics Topics
+# Each topic maps to a list of RSS feed URLs and arXiv parameters
+
+ion-trap:
   - https://journals.aps.org/prl/rss/current.xml
   - https://journals.aps.org/pra/rss/current.xml
   - https://journals.aps.org/prx/rss/current.xml
   - https://journals.aps.org/prxquantum/rss/current.xml
   - https://journals.aps.org/prapplied/rss/current.xml
   - https://journals.aps.org/prb/rss/current.xml
-  
-  # Nature journals
   - https://www.nature.com/nphys.rss
   - https://www.nature.com/npjqi.rss
   - https://www.nature.com/nature.rss
   - https://www.nature.com/ncomms.rss
-  
-  # Science
   - https://www.science.org/rss/news_current.xml
   - https://www.science.org/rss/advances_current.xml
-  
-  # Quantum journal (broad but relevant)
   - https://quantum-journal.org/feed/
 
+trapped-ion:
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prx/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+  - https://journals.aps.org/prb/rss/current.xml
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+  - https://www.nature.com/nature.rss
+  - https://www.nature.com/ncomms.rss
+  - https://www.science.org/rss/news_current.xml
+  - https://www.science.org/rss/advances_current.xml
+  - https://quantum-journal.org/feed/
+
+quantum-networks:
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prx/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+  - https://journals.aps.org/prb/rss/current.xml
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+  - https://www.nature.com/nature.rss
+  - https://www.nature.com/ncomms.rss
+  - https://www.science.org/rss/news_current.xml
+  - https://www.science.org/rss/advances_current.xml
+  - https://quantum-journal.org/feed/
+
+cavity-qed:
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prx/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+  - https://journals.aps.org/prb/rss/current.xml
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+  - https://www.nature.com/nature.rss
+  - https://www.nature.com/ncomms.rss
+  - https://www.science.org/rss/news_current.xml
+  - https://www.science.org/rss/advances_current.xml
+  - https://quantum-journal.org/feed/
+
+quantum-networks-ion:
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prx/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+  - https://journals.aps.org/prb/rss/current.xml
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+  - https://www.nature.com/nature.rss
+  - https://www.nature.com/ncomms.rss
+  - https://www.science.org/rss/news_current.xml
+  - https://www.science.org/rss/advances_current.xml
+  - https://quantum-journal.org/feed/
+
+quantum-networks-neutral:
+  - https://journals.aps.org/prl/rss/current.xml
+  - https://journals.aps.org/pra/rss/current.xml
+  - https://journals.aps.org/prx/rss/current.xml
+  - https://journals.aps.org/prxquantum/rss/current.xml
+  - https://journals.aps.org/prapplied/rss/current.xml
+  - https://journals.aps.org/prb/rss/current.xml
+  - https://www.nature.com/nphys.rss
+  - https://www.nature.com/npjqi.rss
+  - https://www.nature.com/nature.rss
+  - https://www.nature.com/ncomms.rss
+  - https://www.science.org/rss/news_current.xml
+  - https://www.science.org/rss/advances_current.xml
+  - https://quantum-journal.org/feed/
+
+# arXiv configuration (applies to all topics for arXiv search)
 arxiv:
   max_results: 100
   sort_by: submittedDate
