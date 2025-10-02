@@ -2,8 +2,8 @@
 # Contains both topic-specific feeds and general feeds for all topics
 # General RSS feeds used for all topics  
 normal_feeds:
-  # PubMed RSS feeds for Physical Review journals
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  # APS Physical Review Letters RSS feed
+  - https://feeds.aps.org/rss/recent/prl.xml
   # Nature journals
   - https://www.nature.com/nphys.rss
   - https://www.nature.com/npjqi.rss
@@ -20,39 +20,32 @@ normal_feeds:
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/physics.optics
   - https://rss.arxiv.org/rss/physics.comp-ph
-
 # Topic-specific feed configurations (for potential future use)
 ion-trap:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/quant-ph
-
 trapped-ion:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/quant-ph
-
 quantum-networks:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.optics
-
 cavity-qed:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.optics
-
 quantum-networks-ion:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.atom-ph
-
 quantum-networks-neutral:
-  - https://pubmed.ncbi.nlm.nih.gov/rss/search/1QIH8m0Z8VJGBYKPwYs5R9qHqLlqvmJ8zJN0F0/?limit=100&utm_campaign=pubmed-2&fc=20231201000000
+  - https://feeds.aps.org/rss/recent/prl.xml
   - https://rss.arxiv.org/rss/quant-ph
   - https://rss.arxiv.org/rss/physics.atom-ph
   - https://rss.arxiv.org/rss/physics.optics
-
 # arXiv configuration (for future arXiv API integration)
 arxiv:
   max_results: 100
