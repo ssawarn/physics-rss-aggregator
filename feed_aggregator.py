@@ -116,6 +116,9 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     total_keyword_filtered = 0
     total_final_items = 0
     
+    # DEBUG: Track items per journal/source
+    journal_item_counts = {}
+    
     # Check if this is a combined filter topic
     is_quantum_networks_combined = 'quantum networks' in normalized_topic.lower() and ('ion' in normalized_topic.lower() or 'atom' in normalized_topic.lower())
     logger.info(f"Is quantum networks combined topic: {is_quantum_networks_combined}")
@@ -129,7 +132,9 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
         try:
             # Fetch and parse the feed
             response = requests.get(feed_url, timeout=15)
-            logger.info(f"HTTP Status: {response.status_code}")
+            
+            # DEBUG: Log HTTP status BEFORE filtering
+            logger.info(f"DEBUG: HTTP Status: {response.status_code}")
             
             if response.status_code != 200:
                 logger.warning(f"HTTP error {response.status_code} for {feed_url}")
@@ -149,12 +154,25 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
                 logger.warning(f"Feed parsing warning for {feed_url}: {getattr(feed, 'bozo_exception', 'Unknown error')}")
             
             raw_items = len(feed.entries)
-            logger.info(f"Raw items fetched: {raw_items}")
             total_raw_items += raw_items
             
             # Get source name using URL mapping
             source = get_source_from_url(feed_url, feed)
-            logger.info(f"Feed source: {source}")
+            
+            # DEBUG: Log feed URL mapping and raw entries BEFORE filtering
+            logger.info(f"DEBUG: Feed URL maps to journal: '{source}'")
+            logger.info(f"DEBUG: Number of raw entries after parsing: {raw_items}")
+            
+            # DEBUG: Print first 2 titles from non-arXiv feeds
+            if 'arxiv' not in source.lower():
+                logger.info(f"DEBUG: Sample titles from '{source}':")
+                for idx, entry in enumerate(feed.entries[:2]):
+                    title = entry.get('title', 'No title')
+                    logger.info(f"  [{idx+1}] {title}")
+            
+            # Initialize counter for this journal
+            if source not in journal_item_counts:
+                journal_item_counts[source] = 0
             
             date_filtered_count = 0
             keyword_filtered_count = 0
@@ -203,6 +221,7 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
                 if include_in_results:
                     results.append(item)
                     final_count += 1
+                    journal_item_counts[source] += 1
                 
             # Store feed statistics
             FEED_STATS[feed_name] = {
@@ -245,6 +264,11 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     logger.info(f"Date filtered out (6mo): {total_date_filtered}")
     logger.info(f"Keyword filtered out: {total_keyword_filtered}")
     logger.info(f"Final items (2mo): {total_final_items}")
+    
+    # DEBUG: Print items found per journal/source
+    logger.info(f"\n=== ITEMS PER JOURNAL/SOURCE ===")
+    for journal, count in sorted(journal_item_counts.items(), key=lambda x: x[1], reverse=True):
+        logger.info(f"  {journal}: {count} items")
     logger.info(f"============================\n")
     
     return results
