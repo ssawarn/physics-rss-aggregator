@@ -6,6 +6,7 @@ import yaml
 from typing import Dict, List, Any
 import re
 import logging
+from urllib.parse import urlparse
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +14,60 @@ logger = logging.getLogger(__name__)
 
 # Global stats for debugging
 FEED_STATS = {}
+
+# Feed URL to source/journal name mapping
+# Normalized URLs (without protocol, lowercase) to journal labels
+FEED_URL_TO_SOURCE = {
+    # APS Physical Review Letters
+    'feeds.aps.org/rss/recent/prl.xml': 'Physical Review Letters',
+    
+    # Nature journals
+    'www.nature.com/nphys.rss': 'Nature Physics',
+    'www.nature.com/npjqi.rss': 'NPJ Quantum Information',
+    'www.nature.com/nature.rss': 'Nature',
+    'www.nature.com/ncomms.rss': 'Nature Communications',
+    
+    # Science journals
+    'www.science.org/rss/news_current.xml': 'Science News',
+    'www.science.org/rss/advances_current.xml': 'Science Advances',
+    
+    # Quantum Journal
+    'quantum-journal.org/feed/': 'Quantum Journal',
+    'quantum-journal.org/feed': 'Quantum Journal',
+    
+    # arXiv feeds
+    'rss.arxiv.org/rss/physics': 'arXiv Physics',
+    'rss.arxiv.org/rss/quant-ph': 'arXiv Quantum Physics',
+    'rss.arxiv.org/rss/cond-mat': 'arXiv Condensed Matter',
+    'rss.arxiv.org/rss/physics.atom-ph': 'arXiv Atomic Physics',
+    'rss.arxiv.org/rss/physics.optics': 'arXiv Optics',
+    'rss.arxiv.org/rss/physics.comp-ph': 'arXiv Computational Physics',
+}
+
+def normalize_feed_url(url: str) -> str:
+    """Normalize feed URL for matching (remove protocol, lowercase, strip trailing slash)."""
+    parsed = urlparse(url.lower())
+    path = parsed.path.rstrip('/')
+    return f"{parsed.netloc}{path}"
+
+def get_source_from_url(feed_url: str, feed_obj) -> str:
+    """Get source name from URL mapping or fall back to feed title."""
+    normalized_url = normalize_feed_url(feed_url)
+    
+    # Try exact match first
+    if normalized_url in FEED_URL_TO_SOURCE:
+        return FEED_URL_TO_SOURCE[normalized_url]
+    
+    # Try with trailing slash
+    if normalized_url + '/' in FEED_URL_TO_SOURCE:
+        return FEED_URL_TO_SOURCE[normalized_url + '/']
+    
+    # Try without trailing slash
+    if normalized_url.rstrip('/') in FEED_URL_TO_SOURCE:
+        return FEED_URL_TO_SOURCE[normalized_url.rstrip('/')]
+    
+    # Fallback to feed title or Unknown
+    return feed_obj.feed.get('title', 'Unknown') if hasattr(feed_obj, 'feed') else 'Unknown'
 
 async def aggregate(topic: str) -> List[Dict[str, Any]]:
     """
@@ -97,6 +152,10 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
             logger.info(f"Raw items fetched: {raw_items}")
             total_raw_items += raw_items
             
+            # Get source name using URL mapping
+            source = get_source_from_url(feed_url, feed)
+            logger.info(f"Feed source: {source}")
+            
             date_filtered_count = 0
             keyword_filtered_count = 0
             final_count = 0
@@ -132,13 +191,10 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
                 # Check if item passes 2-month filter for final display
                 include_in_results = not pub_date or pub_date >= two_months_ago
                 
-                # Determine source/journal
-                source = feed.feed.get('title', '') or entry.get('author', '') or 'Unknown'
-                
                 item = {
                     'title': title,
                     'abstract': abstract,
-                    'source': source,
+                    'source': source,  # Use the mapped source from URL
                     'published': pub_date.isoformat() if pub_date else '',
                     'link': entry.get('link', ''),
                     'published_parsed': entry.get('published_parsed', None)
