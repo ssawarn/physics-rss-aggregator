@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from feed_aggregator import aggregate, get_feed_stats
+from feed_aggregator import aggregate, aggregate_all, get_feed_stats
 import time
 
 app = FastAPI()
@@ -134,6 +134,18 @@ def get_debug_stats(topic: str):
             "total_items": len(items),
             "grouped_count": sum(len(v) for v in grouped.values()),
             "recent_grouped": grouped
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/all-rss")
+def get_all_rss():
+    """Get all RSS feed items without any topic or date filtering."""
+    try:
+        items = asyncio.run(aggregate_all())
+        return JSONResponse(content={
+            "count": len(items),
+            "items": items
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
