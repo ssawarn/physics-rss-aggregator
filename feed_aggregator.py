@@ -20,15 +20,15 @@ FEED_STATS = {}
 FEED_URL_TO_SOURCE = {
     # APS Physical Review Letters
     'feeds.aps.org/rss/recent/prl.xml': 'Physical Review Letters',
-    'https://feeds.aps.org/rss/prasuggestions.xml',
-    'https://feeds.aps.org/rss/recent/pra.xml',
-    'https://feeds.aps.org/rss/tocsec/PRA-Fundamentalconcepts.xml',
-    'https://feeds.aps.org/rss/tocsec/PRA-Quantuminformation.xml',
-    'https://feeds.aps.org/rss/tocsec/PRA-Quantumopticsphysicsoflasersnonlinearopticsclassicaloptics.xml',
-    'https://feeds.aps.org/rss/tocsec/PRL-GeneralPhysicsStatisticalandQuantumMechanicsQuantumInformationetc.xml',
-    'https://feeds.aps.org/rss/recent/prlsuggestions.xml',
-    'https://feeds.aps.org/rss/recent/prx.xml',
-    'https://feeds.aps.org/rss/recent/prxquantum.xml',
+    'feeds.aps.org/rss/prasuggestions.xml': 'Physical Review A Suggestions',
+    'feeds.aps.org/rss/recent/pra.xml': 'Physical Review A',
+    'feeds.aps.org/rss/tocsec/pra-fundamentalconcepts.xml': 'Physical Review A - Fundamental Concepts',
+    'feeds.aps.org/rss/tocsec/pra-quantuminformation.xml': 'Physical Review A - Quantum Information',
+    'feeds.aps.org/rss/tocsec/pra-quantumopticsphysicsoflasersnonlinearopticsclassicaloptics.xml': 'Physical Review A - Quantum Optics',
+    'feeds.aps.org/rss/tocsec/prl-generalphysicsstatisticalandquantummechanicsquantuminformationetc.xml': 'Physical Review Letters - Quantum',
+    'feeds.aps.org/rss/recent/prlsuggestions.xml': 'Physical Review Letters Suggestions',
+    'feeds.aps.org/rss/recent/prx.xml': 'Physical Review X',
+    'feeds.aps.org/rss/recent/prxquantum.xml': 'PRX Quantum',
     
     # Nature journals
     'www.nature.com/nphys.rss': 'Nature Physics',
