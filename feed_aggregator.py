@@ -20,6 +20,15 @@ FEED_STATS = {}
 FEED_URL_TO_SOURCE = {
     # APS Physical Review Letters
     'feeds.aps.org/rss/recent/prl.xml': 'Physical Review Letters',
+    'https://feeds.aps.org/rss/prasuggestions.xml',
+    'https://feeds.aps.org/rss/recent/pra.xml',
+    'https://feeds.aps.org/rss/tocsec/PRA-Fundamentalconcepts.xml',
+    'https://feeds.aps.org/rss/tocsec/PRA-Quantuminformation.xml',
+    'https://feeds.aps.org/rss/tocsec/PRA-Quantumopticsphysicsoflasersnonlinearopticsclassicaloptics.xml',
+    'https://feeds.aps.org/rss/tocsec/PRL-GeneralPhysicsStatisticalandQuantumMechanicsQuantumInformationetc.xml',
+    'https://feeds.aps.org/rss/recent/prlsuggestions.xml',
+    'https://feeds.aps.org/rss/recent/prx.xml',
+    'https://feeds.aps.org/rss/recent/prxquantum.xml',
     
     # Nature journals
     'www.nature.com/nphys.rss': 'Nature Physics',
@@ -29,19 +38,13 @@ FEED_URL_TO_SOURCE = {
     
     # Science journals
     'www.science.org/rss/news_current.xml': 'Science News',
-    'www.science.org/rss/advances_current.xml': 'Science Advances',
     
     # Quantum Journal
     'quantum-journal.org/feed/': 'Quantum Journal',
     'quantum-journal.org/feed': 'Quantum Journal',
     
     # arXiv feeds
-    'rss.arxiv.org/rss/physics': 'arXiv Physics',
-    'rss.arxiv.org/rss/quant-ph': 'arXiv Quantum Physics',
-    'rss.arxiv.org/rss/cond-mat': 'arXiv Condensed Matter',
-    'rss.arxiv.org/rss/physics.atom-ph': 'arXiv Atomic Physics',
-    'rss.arxiv.org/rss/physics.optics': 'arXiv Optics',
-    'rss.arxiv.org/rss/physics.comp-ph': 'arXiv Computational Physics',
+    'rss.arxiv.org/rss/quant-ph': 'arXiv Quantum Physics'
 }
 
 def normalize_feed_url(url: str) -> str:
