@@ -7,14 +7,11 @@ from typing import Dict, List, Any
 import re
 import logging
 from urllib.parse import urlparse
-
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 # Global stats for debugging
 FEED_STATS = {}
-
 # Feed URL to source/journal name mapping
 # Normalized URLs (without protocol, lowercase) to journal labels
 FEED_URL_TO_SOURCE = {
@@ -53,6 +50,7 @@ def normalize_feed_url(url: str) -> str:
     path = parsed.path.rstrip('/')
     return f"{parsed.netloc}{path}"
 
+
 def get_source_from_url(feed_url: str, feed_obj) -> str:
     """Get source name from URL mapping or fall back to feed title."""
     normalized_url = normalize_feed_url(feed_url)
@@ -71,6 +69,7 @@ def get_source_from_url(feed_url: str, feed_obj) -> str:
     
     # Fallback to feed title or Unknown
     return feed_obj.feed.get('title', 'Unknown') if hasattr(feed_obj, 'feed') else 'Unknown'
+
 
 async def aggregate(topic: str) -> List[Dict[str, Any]]:
     """
@@ -275,6 +274,73 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     logger.info(f"============================\n")
     
     return results
+
+
+# NEW: Aggregate all feeds without filters or topic/date logic
+async def aggregate_all() -> List[Dict[str, Any]]:
+    """
+    Load feeds.yaml, fetch every URL in normal_feeds, and return a flat list of
+    items with title, abstract/description, source, published date, and link.
+    No filtering by topic or date is applied.
+    """
+    logger.info("Starting aggregate_all: loading feeds.yaml and fetching all normal_feeds")
+    try:
+        with open('feeds.yaml', 'r') as f:
+            feeds_config = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.error("feeds.yaml not found")
+        return []
+
+    feed_urls = feeds_config.get('normal_feeds', [])
+    if not feed_urls:
+        logger.error("No normal_feeds found in feeds.yaml")
+        return []
+
+    results: List[Dict[str, Any]] = []
+
+    for i, feed_url in enumerate(feed_urls, 1):
+        feed_name = feed_url.split('/')[-1] if '/' in feed_url else feed_url
+        logger.info(f"[aggregate_all] [{i}/{len(feed_urls)}] Fetching: {feed_name} -> {feed_url}")
+        try:
+            resp = requests.get(feed_url, timeout=15)
+            if resp.status_code != 200:
+                logger.warning(f"[aggregate_all] HTTP {resp.status_code} for {feed_url}")
+                continue
+
+            parsed = feedparser.parse(resp.content)
+            source_name = get_source_from_url(feed_url, parsed)
+
+            for entry in getattr(parsed, 'entries', []):
+                # published date as ISO8601 if available
+                pub_dt = None
+                if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                    try:
+                        pub_dt = datetime(*entry.published_parsed[:6]).isoformat()
+                    except Exception:
+                        pub_dt = ''
+                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+                    try:
+                        pub_dt = datetime(*entry.updated_parsed[:6]).isoformat()
+                    except Exception:
+                        pub_dt = ''
+                else:
+                    pub_dt = ''
+
+                item = {
+                    'title': entry.get('title', ''),
+                    'abstract': entry.get('summary', '') or entry.get('description', ''),
+                    'source': source_name,
+                    'published': pub_dt,
+                    'link': entry.get('link', ''),
+                }
+                results.append(item)
+        except Exception as e:
+            logger.error(f"[aggregate_all] Error fetching {feed_url}: {e}")
+            continue
+
+    logger.info(f"aggregate_all complete. Total items collected: {len(results)}")
+    return results
+
 
 def get_feed_stats():
     """Return feed statistics for debugging."""
