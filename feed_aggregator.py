@@ -30,9 +30,6 @@ FEED_URL_TO_SOURCE = {
     'www.nature.com/nphys.rss': 'Nature Physics',
     'www.nature.com/npjqi.rss': 'NPJ Quantum Information',
     
-    # Science journals
-    'www.science.org/rss/news_current.xml': 'Science News',
-    
     # Quantum Journal
     'quantum-journal.org/feed/': 'Quantum Journal',
     'quantum-journal.org/feed': 'Quantum Journal',
