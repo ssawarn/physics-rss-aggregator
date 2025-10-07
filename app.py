@@ -1,12 +1,14 @@
 import os
 import asyncio
 import threading
+import json
 from datetime import datetime, time as dtime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from feed_aggregator import aggregate, aggregate_all, get_feed_stats
+from pydantic import BaseModel
 import time
 
 app = FastAPI()
@@ -39,6 +41,10 @@ DAILY_CACHE = {
     'count': 0
 }
 DAILY_CACHE_LOCK = threading.Lock()
+
+# Favorites file path
+FAVORITES_FILE = "favorites.json"
+FAVORITES_LOCK = threading.Lock()
 
 def canonical(s: str) -> str:
     return s.lower().strip().replace(" ", "-").replace("_", "-")
@@ -240,6 +246,99 @@ def manual_refresh_cache():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+# Favorites functionality
+class FavoriteRequest(BaseModel):
+    article_id: str
+    title: str
+    link: str
+    source: str
+    published: str
+
+def load_favorites():
+    """Load favorites from JSON file."""
+    try:
+        if os.path.exists(FAVORITES_FILE):
+            with open(FAVORITES_FILE, 'r') as f:
+                return json.load(f)
+        return []
+    except Exception as e:
+        print(f"Error loading favorites: {e}")
+        return []
+
+def save_favorites(favorites):
+    """Save favorites to JSON file."""
+    try:
+        with open(FAVORITES_FILE, 'w') as f:
+            json.dump(favorites, f, indent=2)
+    except Exception as e:
+        print(f"Error saving favorites: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save favorites")
+
+@app.get("/favorites")
+def get_favorites():
+    """Get all favorite articles for the user."""
+    with FAVORITES_LOCK:
+        favorites = load_favorites()
+        return JSONResponse(content={
+            "status": "success",
+            "count": len(favorites),
+            "favorites": favorites
+        })
+
+@app.post("/favorite")
+def add_favorite(request: FavoriteRequest):
+    """Add an article to favorites."""
+    with FAVORITES_LOCK:
+        favorites = load_favorites()
+        
+        # Check if article is already favorited
+        if any(fav['article_id'] == request.article_id for fav in favorites):
+            return JSONResponse(content={
+                "status": "already_exists",
+                "message": "Article is already in favorites"
+            })
+        
+        # Add new favorite
+        new_favorite = {
+            "article_id": request.article_id,
+            "title": request.title,
+            "link": request.link,
+            "source": request.source,
+            "published": request.published,
+            "favorited_at": datetime.now().isoformat()
+        }
+        favorites.append(new_favorite)
+        save_favorites(favorites)
+        
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Article added to favorites",
+            "favorite": new_favorite
+        })
+
+@app.post("/unfavorite")
+def remove_favorite(request: FavoriteRequest):
+    """Remove an article from favorites."""
+    with FAVORITES_LOCK:
+        favorites = load_favorites()
+        
+        # Find and remove the favorite
+        initial_count = len(favorites)
+        favorites = [fav for fav in favorites if fav['article_id'] != request.article_id]
+        
+        if len(favorites) == initial_count:
+            return JSONResponse(content={
+                "status": "not_found",
+                "message": "Article not found in favorites"
+            })
+        
+        save_favorites(favorites)
+        
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Article removed from favorites"
+        })
 
 if __name__ == "__main__":
     import uvicorn
