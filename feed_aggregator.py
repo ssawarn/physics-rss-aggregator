@@ -21,7 +21,6 @@ FEED_URL_TO_SOURCE = {
     'feeds.aps.org/rss/recent/pra.xml': 'Physical Review A',
     'feeds.aps.org/rss/tocsec/pra-fundamentalconcepts.xml': 'Physical Review A - Fundamental Concepts',
     'feeds.aps.org/rss/tocsec/pra-quantuminformation.xml': 'Physical Review A - Quantum Information',
-    'feeds.aps.org/rss/tocsec/pra-quantumopticsphysicsoflasersnonlinearopticsclassicaloptics.xml': 'Physical Review A - Quantum Optics',
     'feeds.aps.org/rss/tocsec/prl-generalphysicsstatisticalandquantummechanicsquantuminformationetc.xml': 'Physical Review Letters - Quantum',
     'feeds.aps.org/rss/recent/prlsuggestions.xml': 'Physical Review Letters Suggestions',
     'feeds.aps.org/rss/recent/prx.xml': 'Physical Review X',
