@@ -102,7 +102,7 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     
     # Calculate date threshold (2 months ago for filtering)
     two_months_ago = datetime.now() - timedelta(days=60)
-    six_months_ago = datetime.now() - timedelta(days=180)
+    six_months_ago = datetime.now() - timedelta(days=70)
     
     logger.info(f"Date filters: 2-month threshold: {two_months_ago}, 6-month threshold: {six_months_ago}")
     
