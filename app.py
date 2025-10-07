@@ -94,16 +94,31 @@ def schedule_daily_refresh():
         # Refresh the cache
         asyncio.run(refresh_daily_cache())
 
+def startup_refresh_thread():
+    """Background thread to perform initial startup refresh."""
+    print(f"[{datetime.now()}] Starting initial cache refresh in background thread...")
+    asyncio.run(refresh_daily_cache())
+    print(f"[{datetime.now()}] Startup cache refresh complete")
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize cache on startup and start background refresh thread."""
+    """Initialize cache on startup and start background refresh threads.
+    
+    Hybrid approach:
+    1. Immediate refresh on startup (in background thread)
+    2. Daily scheduled refresh at 1 AM
+    """
     print(f"[{datetime.now()}] Application starting up...")
-    # Initial cache load
-    await refresh_daily_cache()
-    # Start background thread for daily refresh
+    
+    # Start background thread for immediate startup refresh
+    startup_thread = threading.Thread(target=startup_refresh_thread, daemon=True)
+    startup_thread.start()
+    
+    # Start background thread for daily refresh at 1 AM
     refresh_thread = threading.Thread(target=schedule_daily_refresh, daemon=True)
     refresh_thread.start()
-    print(f"[{datetime.now()}] Daily refresh scheduler started")
+    
+    print(f"[{datetime.now()}] Startup refresh and daily scheduler started")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
