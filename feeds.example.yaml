@@ -7,7 +7,6 @@ normal_feeds:
   - https://feeds.aps.org/rss/recent/pra.xml
   - https://feeds.aps.org/rss/tocsec/PRA-Fundamentalconcepts.xml
   - https://feeds.aps.org/rss/tocsec/PRA-Quantuminformation.xml
-  - https://feeds.aps.org/rss/tocsec/PRA-Quantumopticsphysicsoflasersnonlinearopticsclassicaloptics.xml
   - https://feeds.aps.org/rss/tocsec/PRL-GeneralPhysicsStatisticalandQuantumMechanicsQuantumInformationetc.xml
   - https://feeds.aps.org/rss/recent/prlsuggestions.xml
   - https://feeds.aps.org/rss/recent/prx.xml
@@ -16,8 +15,6 @@ normal_feeds:
   # Nature journals
   - https://www.nature.com/nphys.rss
   - https://www.nature.com/npjqi.rss
-  - https://www.nature.com/nature.rss
-  - https://www.nature.com/ncomms.rss
 
   # Science journals
   - https://www.science.org/rss/news_current.xml
