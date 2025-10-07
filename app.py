@@ -1,5 +1,7 @@
 import os
 import asyncio
+import threading
+from datetime import datetime, time as dtime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +32,14 @@ PREFETCH_INTERVAL_SECONDS = int(os.environ.get("PREFETCH_INTERVAL_SECONDS", 2880
 PREFETCH = {}
 PREFETCH_TS = 0
 
+# Daily cache for /all-rss endpoint
+DAILY_CACHE = {
+    'items': [],
+    'last_updated': None,
+    'count': 0
+}
+DAILY_CACHE_LOCK = threading.Lock()
+
 def canonical(s: str) -> str:
     return s.lower().strip().replace(" ", "-").replace("_", "-")
 
@@ -49,6 +59,49 @@ def filter_and_group_recent(items, cutoff_days=60):
                 src = item.get("source", "Unknown")
                 grouped.setdefault(src, []).append(item)
     return grouped
+
+def refresh_daily_cache():
+    """Refresh the daily cache by fetching all RSS feeds."""
+    global DAILY_CACHE
+    try:
+        print(f"[{datetime.now()}] Starting daily RSS cache refresh...")
+        items = asyncio.run(aggregate_all())
+        with DAILY_CACHE_LOCK:
+            DAILY_CACHE['items'] = items
+            DAILY_CACHE['last_updated'] = datetime.now().isoformat()
+            DAILY_CACHE['count'] = len(items)
+        print(f"[{datetime.now()}] Daily cache refresh complete. Total items: {len(items)}")
+    except Exception as e:
+        print(f"[{datetime.now()}] Error refreshing daily cache: {e}")
+
+def schedule_daily_refresh():
+    """Background thread to refresh cache at 1 AM every day."""
+    while True:
+        now = datetime.now()
+        # Calculate next 1 AM
+        target_time = now.replace(hour=1, minute=0, second=0, microsecond=0)
+        if now >= target_time:
+            # If it's already past 1 AM today, schedule for tomorrow
+            from datetime import timedelta
+            target_time += timedelta(days=1)
+        
+        sleep_seconds = (target_time - now).total_seconds()
+        print(f"[{datetime.now()}] Next cache refresh scheduled at {target_time} (in {sleep_seconds/3600:.2f} hours)")
+        time.sleep(sleep_seconds)
+        
+        # Refresh the cache
+        refresh_daily_cache()
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize cache on startup and start background refresh thread."""
+    print(f"[{datetime.now()}] Application starting up...")
+    # Initial cache load
+    refresh_daily_cache()
+    # Start background thread for daily refresh
+    refresh_thread = threading.Thread(target=schedule_daily_refresh, daemon=True)
+    refresh_thread.start()
+    print(f"[{datetime.now()}] Daily refresh scheduler started")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -139,16 +192,33 @@ def get_debug_stats(topic: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/all-rss")
-def get_all_rss():
-    """Get all RSS feed items without any topic or date filtering."""
-    try:
-        items = asyncio.run(aggregate_all())
+def get_all_rss(force_refresh: bool = False):
+    """Get all RSS feed items from daily cache."""
+    global DAILY_CACHE
+    
+    # If force_refresh is requested, refresh the cache
+    if force_refresh:
+        refresh_daily_cache()
+    
+    with DAILY_CACHE_LOCK:
         return JSONResponse(content={
-            "count": len(items),
-            "items": items
+            "count": DAILY_CACHE['count'],
+            "items": DAILY_CACHE['items'],
+            "last_updated": DAILY_CACHE['last_updated'],
+            "status": "success"
         })
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/refresh-cache")
+def manual_refresh_cache():
+    """Manually trigger cache refresh."""
+    refresh_daily_cache()
+    with DAILY_CACHE_LOCK:
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Cache refreshed successfully",
+            "last_updated": DAILY_CACHE['last_updated'],
+            "count": DAILY_CACHE['count']
+        })
 
 @app.get("/health")
 def health():
