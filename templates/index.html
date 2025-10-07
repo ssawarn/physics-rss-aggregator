@@ -10,7 +10,16 @@
     .container { max-width: 1200px; margin: 0 auto; }
     .stats { background: #e3f2fd; padding: 1rem; margin-bottom: 1.5rem; border-left: 4px solid #2196f3; border-radius: 4px; }
     .items-container { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .item { border-bottom: 1px solid #e5e5e5; padding: 1.5rem 0; }
+    .source-section { margin-bottom: 1.5rem; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+    .source-header { background: #f0f0f0; padding: 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+    .source-header:hover { background: #e8e8e8; }
+    .source-title { font-size: 1.2rem; font-weight: 600; color: #333; }
+    .source-count { color: #666; font-size: 0.9rem; }
+    .source-toggle { font-size: 1.2rem; color: #666; transition: transform 0.3s; }
+    .source-toggle.expanded { transform: rotate(180deg); }
+    .source-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .source-content.expanded { max-height: none; }
+    .item { border-bottom: 1px solid #e5e5e5; padding: 1.5rem; }
     .item:last-child { border-bottom: none; }
     .item-title { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600; }
     .item-title a { color: #0066cc; text-decoration: none; }
@@ -28,8 +37,17 @@
     <div id="stats" class="stats">Loading...</div>
     <div id="content" class="loading">Fetching all RSS feeds...</div>
   </div>
-
   <script>
+    function toggleSource(sourceId) {
+      const content = document.getElementById(`content-${sourceId}`);
+      const toggle = document.getElementById(`toggle-${sourceId}`);
+      
+      if (content && toggle) {
+        content.classList.toggle('expanded');
+        toggle.classList.toggle('expanded');
+      }
+    }
+
     async function loadAllFeeds() {
       const contentEl = document.getElementById('content');
       const statsEl = document.getElementById('stats');
@@ -51,63 +69,120 @@
           return;
         }
         
+        // Group items by source
+        const groupedItems = {};
+        data.items.forEach(item => {
+          const source = item.source || 'Other';
+          if (!groupedItems[source]) {
+            groupedItems[source] = [];
+          }
+          groupedItems[source].push(item);
+        });
+        
         // Display stats
-        statsEl.innerHTML = `<strong>Total items:</strong> ${data.count || data.items.length} | <strong>Status:</strong> ${data.status || 'Success'}`;
+        const sourceCount = Object.keys(groupedItems).length;
+        statsEl.innerHTML = `<strong>Total items:</strong> ${data.count || data.items.length} | <strong>Sources:</strong> ${sourceCount} | <strong>Status:</strong> ${data.status || 'Success'}`;
         
         // Create items container
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'items-container';
         
-        // Render each item
-        data.items.forEach(item => {
-          const itemDiv = document.createElement('div');
-          itemDiv.className = 'item';
+        // Sort sources alphabetically
+        const sortedSources = Object.keys(groupedItems).sort();
+        
+        // Create sections for each source
+        sortedSources.forEach(source => {
+          const sourceId = source.replace(/[^a-zA-Z0-9]/g, '-');
+          const items = groupedItems[source];
           
-          // Title with link
-          const titleDiv = document.createElement('div');
-          titleDiv.className = 'item-title';
-          if (item.link) {
-            const link = document.createElement('a');
-            link.href = item.link;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.textContent = item.title || 'Untitled';
-            titleDiv.appendChild(link);
-          } else {
-            titleDiv.textContent = item.title || 'Untitled';
-          }
-          itemDiv.appendChild(titleDiv);
+          // Create source section
+          const sourceSection = document.createElement('div');
+          sourceSection.className = 'source-section';
           
-          // Source
-          if (item.source) {
-            const sourceDiv = document.createElement('div');
-            sourceDiv.className = 'item-source';
-            sourceDiv.textContent = `Source: ${item.source}`;
-            itemDiv.appendChild(sourceDiv);
-          }
+          // Create source header (clickable)
+          const sourceHeader = document.createElement('div');
+          sourceHeader.className = 'source-header';
+          sourceHeader.onclick = () => toggleSource(sourceId);
           
-          // Published date
-          if (item.published) {
-            const metaDiv = document.createElement('div');
-            metaDiv.className = 'item-meta';
-            const date = new Date(item.published);
-            const formattedDate = isNaN(date.getTime()) ? item.published : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            metaDiv.textContent = `Published: ${formattedDate}`;
-            itemDiv.appendChild(metaDiv);
-          }
+          const headerLeft = document.createElement('div');
+          const sourceTitle = document.createElement('span');
+          sourceTitle.className = 'source-title';
+          sourceTitle.textContent = source;
+          headerLeft.appendChild(sourceTitle);
           
-          // Abstract
-          if (item.abstract) {
-            const abstractDiv = document.createElement('div');
-            abstractDiv.className = 'item-abstract';
-            // Remove HTML tags if present
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = item.abstract;
-            abstractDiv.textContent = tempDiv.textContent || tempDiv.innerText || item.abstract;
-            itemDiv.appendChild(abstractDiv);
-          }
+          const sourceCount = document.createElement('span');
+          sourceCount.className = 'source-count';
+          sourceCount.textContent = ` (${items.length} item${items.length !== 1 ? 's' : ''})`;
+          headerLeft.appendChild(sourceCount);
           
-          itemsContainer.appendChild(itemDiv);
+          const toggle = document.createElement('span');
+          toggle.className = 'source-toggle';
+          toggle.id = `toggle-${sourceId}`;
+          toggle.textContent = '▼';
+          
+          sourceHeader.appendChild(headerLeft);
+          sourceHeader.appendChild(toggle);
+          sourceSection.appendChild(sourceHeader);
+          
+          // Create source content (collapsible)
+          const sourceContent = document.createElement('div');
+          sourceContent.className = 'source-content';
+          sourceContent.id = `content-${sourceId}`;
+          
+          // Render each item
+          items.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            
+            // Title with link
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'item-title';
+            if (item.link) {
+              const link = document.createElement('a');
+              link.href = item.link;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              link.textContent = item.title || 'Untitled';
+              titleDiv.appendChild(link);
+            } else {
+              titleDiv.textContent = item.title || 'Untitled';
+            }
+            itemDiv.appendChild(titleDiv);
+            
+            // Source (now redundant in grouped view, but keeping for consistency)
+            if (item.source) {
+              const sourceDiv = document.createElement('div');
+              sourceDiv.className = 'item-source';
+              sourceDiv.textContent = `Source: ${item.source}`;
+              itemDiv.appendChild(sourceDiv);
+            }
+            
+            // Published date
+            if (item.published) {
+              const metaDiv = document.createElement('div');
+              metaDiv.className = 'item-meta';
+              const date = new Date(item.published);
+              const formattedDate = isNaN(date.getTime()) ? item.published : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              metaDiv.textContent = `Published: ${formattedDate}`;
+              itemDiv.appendChild(metaDiv);
+            }
+            
+            // Abstract
+            if (item.abstract) {
+              const abstractDiv = document.createElement('div');
+              abstractDiv.className = 'item-abstract';
+              // Remove HTML tags if present
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = item.abstract;
+              abstractDiv.textContent = tempDiv.textContent || tempDiv.innerText || item.abstract;
+              itemDiv.appendChild(abstractDiv);
+            }
+            
+            sourceContent.appendChild(itemDiv);
+          });
+          
+          sourceSection.appendChild(sourceContent);
+          itemsContainer.appendChild(sourceSection);
         });
         
         contentEl.innerHTML = '';
