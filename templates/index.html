@@ -50,6 +50,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .source-header:hover {
+            background: #2980b9;
         }
         .source-title {
             font-size: 18px;
@@ -61,6 +66,10 @@
         }
         .source-content {
             padding: 20px;
+            display: block;
+        }
+        .source-content.collapsed {
+            display: none;
         }
         .item {
             padding: 15px;
@@ -117,6 +126,13 @@
             border-radius: 8px;
             margin: 20px 0;
         }
+        .collapse-indicator {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+        .collapse-indicator.collapsed {
+            transform: rotate(-90deg);
+        }
     </style>
 </head>
 <body>
@@ -127,7 +143,6 @@
         </header>
         <div id="content"></div>
     </div>
-
     <script>
         // Favorites management
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -160,6 +175,15 @@
             favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         }
 
+        function toggleSection(sourceIndex) {
+            const content = document.querySelector(`[data-source-index="${sourceIndex}"]`);
+            const indicator = document.querySelector(`[data-indicator-index="${sourceIndex}"]`);
+            if (content && indicator) {
+                content.classList.toggle('collapsed');
+                indicator.classList.toggle('collapsed');
+            }
+        }
+
         async function loadArticles() {
             try {
                 const response = await fetch('/all-rss');
@@ -185,18 +209,20 @@
                         items
                     }));
                 }
+
                 const groupedSources = groupBySource(allItems);
 
                 // Render grouped by source
-                const contentHtml = groupedSources.map(source => `
+                const contentHtml = groupedSources.map((source, sourceIndex) => `
                     <div class="source-section">
-                        <div class="source-header">
+                        <div class="source-header" onclick="toggleSection(${sourceIndex})">
                             <div>
                                 <div class="source-title">${source.name}</div>
                                 <div class="source-count">${source.count} articles</div>
                             </div>
+                            <span class="collapse-indicator" data-indicator-index="${sourceIndex}">▼</span>
                         </div>
-                        <div class="source-content">
+                        <div class="source-content" data-source-index="${sourceIndex}">
                             ${source.items.map(item => `
                                 <div class="item">
                                     <div class="item-content">
