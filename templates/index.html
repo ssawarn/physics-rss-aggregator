@@ -204,7 +204,6 @@
             </div>
         </main>
     </div>
-    
     <script>
         let favoriteItems = [];
         
@@ -259,7 +258,7 @@
                 }
                 
                 const data = await response.json();
-                const allItems = data.articles;
+                const allItems = data.items || [];
                 
                 // Update stats
                 const uniqueSources = [...new Set(allItems.map(item => item.source))];
@@ -301,7 +300,7 @@
                                         <div class="item-meta">${item.published}</div>
                                         ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
                                     </div>
-                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')"☆></button>
+                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
                                 </div>
                             `).join('')}
                         </div>
