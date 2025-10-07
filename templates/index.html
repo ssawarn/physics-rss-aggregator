@@ -1,235 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Physics RSS Aggregator - All Feeds</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
-    h1 { margin-bottom: 1rem; color: #222; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .stats { background: #e3f2fd; padding: 1rem; margin-bottom: 1.5rem; border-left: 4px solid #2196f3; border-radius: 4px; }
-    .items-container { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .source-section { margin-bottom: 1.5rem; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
-    .source-header { background: #f0f0f0; padding: 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
-    .source-header:hover { background: #e8e8e8; }
-    .source-title { font-size: 1.2rem; font-weight: 600; color: #333; }
-    .source-count { color: #666; font-size: 0.9rem; }
-    .source-toggle { font-size: 1.2rem; color: #666; transition: transform 0.3s; }
-    .source-toggle.expanded { transform: rotate(180deg); }
-    .source-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-    .source-content.expanded { max-height: none; }
-    .item { border-bottom: 1px solid #e5e5e5; padding: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; }
-    .item:last-child { border-bottom: none; }
-    .item-content { flex: 1; }
-    .item-title { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600; }
-    .item-title a { color: #0066cc; text-decoration: none; }
-    .item-title a:hover { text-decoration: underline; }
-    .item-meta { color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; }
-    .item-source { color: #555; font-size: 0.85rem; margin-bottom: 0.5rem; font-style: italic; }
-    .item-abstract { color: #444; font-size: 0.95rem; line-height: 1.6; margin-top: 0.8rem; padding: 0.8rem; background: #f5f5f5; border-radius: 4px; max-height: 200px; overflow-y: auto; }
-    .loading { text-align: center; padding: 2rem; color: #666; }
-    .error { background: #ffebee; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #f44336; border-radius: 4px; color: #c62828; }
-    
-    /* Favorites styles */
-    .favorites-section { background: #fff3cd; padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid #ffc107; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .favorites-section h2 { margin-top: 0; color: #856404; font-size: 1.4rem; margin-bottom: 1rem; }
-    .favorites-empty { color: #856404; font-style: italic; }
-    .star-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; padding: 0.5rem; margin-left: 1rem; transition: transform 0.2s; flex-shrink: 0; }
-    .star-btn:hover { transform: scale(1.2); }
-    .star-btn.favorited { color: #ffc107; }
-    .star-btn:not(.favorited) { color: #ddd; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics RSS Aggregator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        #stats {
+            color: #666;
+            font-size: 14px;
+        }
+        .source-section {
+            background: white;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .source-header {
+            background: #3498db;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .source-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .source-count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .source-content {
+            padding: 20px;
+        }
+        .item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item-content {
+            flex: 1;
+        }
+        .item-title a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        .item-title a:hover {
+            color: #3498db;
+        }
+        .item-meta {
+            color: #999;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        .item-abstract {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.2s;
+            padding: 0 10px;
+        }
+        .star-btn:hover {
+            color: #f39c12;
+        }
+        .star-btn.favorited {
+            color: #f39c12;
+        }
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Physics RSS Aggregator - All Feeds</h1>
-    
-    <!-- My Favorites Section -->
-    <div class="favorites-section">
-      <h2>⭐ My Favorites</h2>
-      <div id="favorites-container">
-        <p class="favorites-empty">Loading favorites...</p>
-      </div>
+    <div class="container">
+        <header>
+            <h1>Physics RSS Aggregator</h1>
+            <div id="stats">Loading...</div>
+        </header>
+        <div id="content"></div>
     </div>
-    
-    <div id="stats" class="stats">Loading statistics...</div>
-    <div id="content" class="items-container">Loading...</div>
-  </div>
 
-  <script>
-    // State management
-    let allItems = [];
-    let favorites = new Set();
+    <script>
+        // Favorites management
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
-    // Load favorites from backend
-    async function loadFavorites() {
-      try {
-        const response = await fetch('/favorites');
-        if (response.ok) {
-          const data = await response.json();
-          favorites = new Set(data.favorites || []);
-          renderFavorites();
-          updateStarButtons();
+        function toggleFavorite(link) {
+            const index = favorites.indexOf(link);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(link);
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateStarButtons();
         }
-      } catch (error) {
-        console.error('Error loading favorites:', error);
-      }
-    }
 
-    // Add to favorites
-    async function addFavorite(link) {
-      try {
-        const response = await fetch('/favorite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ link: link })
+        function updateStarButtons() {
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                const link = btn.dataset.link;
+                if (favorites.includes(link)) {
+                    btn.textContent = '★';
+                    btn.classList.add('favorited');
+                } else {
+                    btn.textContent = '☆';
+                    btn.classList.remove('favorited');
+                }
+            });
+        }
+
+        function loadFavorites() {
+            favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        }
+
+        async function loadArticles() {
+            try {
+                const response = await fetch('/all-rss');
+                const data = await response.json();
+                const allItems = data.items || [];
+                
+                document.getElementById('stats').innerHTML = `
+                    <strong>Total Articles:</strong> ${allItems.length} |
+                    <strong>Last Updated:</strong> ${new Date(data.last_updated).toLocaleString()}
+                `;
+
+                // For grouping by source
+                function groupBySource(items) {
+                    const sourcesMap = {};
+                    items.forEach(item => {
+                        if (!item.source) item.source = "Unknown";
+                        if (!sourcesMap[item.source]) sourcesMap[item.source] = [];
+                        sourcesMap[item.source].push(item);
+                    });
+                    return Object.entries(sourcesMap).map(([name, items]) => ({
+                        name,
+                        count: items.length,
+                        items
+                    }));
+                }
+                const groupedSources = groupBySource(allItems);
+
+                // Render grouped by source
+                const contentHtml = groupedSources.map(source => `
+                    <div class="source-section">
+                        <div class="source-header">
+                            <div>
+                                <div class="source-title">${source.name}</div>
+                                <div class="source-count">${source.count} articles</div>
+                            </div>
+                        </div>
+                        <div class="source-content">
+                            ${source.items.map(item => `
+                                <div class="item">
+                                    <div class="item-content">
+                                        <div class="item-title">
+                                            <a href="${item.link}" target="_blank">${item.title}</a>
+                                        </div>
+                                        <div class="item-meta">${item.published}</div>
+                                        ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
+                                    </div>
+                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, '\\\'')}')">☆</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('content').innerHTML = contentHtml;
+                updateStarButtons();
+            } catch (error) {
+                document.getElementById('content').innerHTML = `<div class="error">Error loading articles: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadFavorites();
+            await loadArticles();
         });
-        if (response.ok) {
-          favorites.add(link);
-          renderFavorites();
-          updateStarButtons();
-        }
-      } catch (error) {
-        console.error('Error adding favorite:', error);
-      }
-    }
-
-    // Remove from favorites
-    async function removeFavorite(link) {
-      try {
-        const response = await fetch('/unfavorite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ link: link })
-        });
-        if (response.ok) {
-          favorites.delete(link);
-          renderFavorites();
-          updateStarButtons();
-        }
-      } catch (error) {
-        console.error('Error removing favorite:', error);
-      }
-    }
-
-    // Toggle favorite status
-    function toggleFavorite(link) {
-      if (favorites.has(link)) {
-        removeFavorite(link);
-      } else {
-        addFavorite(link);
-      }
-    }
-
-    // Render favorites section
-    function renderFavorites() {
-      const container = document.getElementById('favorites-container');
-      
-      if (favorites.size === 0) {
-        container.innerHTML = '<p class="favorites-empty">No favorites yet. Click the star button next to any article to save it here!</p>';
-        return;
-      }
-
-      const favoriteItems = allItems.filter(item => favorites.has(item.link));
-      
-      if (favoriteItems.length === 0) {
-        container.innerHTML = '<p class="favorites-empty">No favorites yet. Click the star button next to any article to save it here!</p>';
-        return;
-      }
-
-      container.innerHTML = favoriteItems.map(item => `
-        <div class="item">
-          <div class="item-content">
-            <div class="item-title"><a href="${item.link}" target="_blank">${item.title}</a></div>
-            <div class="item-meta">${item.published}</div>
-            <div class="item-source">Source: ${item.source}</div>
-            ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
-          </div>
-          <button class="star-btn favorited" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')">★</button>
-        </div>
-      `).join('');
-    }
-
-    // Update star button states
-    function updateStarButtons() {
-      document.querySelectorAll('.star-btn').forEach(btn => {
-        const link = btn.getAttribute('data-link');
-        if (link) {
-          btn.classList.toggle('favorited', favorites.has(link));
-          btn.textContent = favorites.has(link) ? '★' : '☆';
-        }
-      });
-    }
-
-    // Load all articles from backend
-    async function loadArticles() {
-      try {
-        const response = await fetch('/api/articles');
-        const data = await response.json();
-        
-        if (data.error) {
-          document.getElementById('content').innerHTML = `<div class="error">${data.error}</div>`;
-          return;
-        }
-
-        allItems = data.items || [];
-        
-        // Update statistics
-        document.getElementById('stats').innerHTML = `
-          <strong>Total Articles:</strong> ${data.total_items} | 
-          <strong>Sources:</strong> ${data.sources.length} | 
-          <strong>Last Updated:</strong> ${new Date(data.last_update).toLocaleString()}
-        `;
-
-        // Render content by source
-        const contentHtml = data.sources.map(source => `
-          <div class="source-section">
-            <div class="source-header" onclick="toggleSource('${source.name.replace(/'/g, "\\'")}')">  
-              <div>
-                <div class="source-title">${source.name}</div>
-                <div class="source-count">${source.count} articles</div>
-              </div>
-              <span class="source-toggle" id="toggle-${source.name.replace(/[^a-zA-Z0-9]/g, '-')}">▼</span>
-            </div>
-            <div class="source-content" id="content-${source.name.replace(/[^a-zA-Z0-9]/g, '-')}">
-              ${source.items.map(item => `
-                <div class="item">
-                  <div class="item-content">
-                    <div class="item-title"><a href="${item.link}" target="_blank">${item.title}</a></div>
-                    <div class="item-meta">${item.published}</div>
-                    ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
-                  </div>
-                  <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')">☆</button>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `).join('');
-
-        document.getElementById('content').innerHTML = contentHtml;
-        updateStarButtons();
-        
-      } catch (error) {
-        document.getElementById('content').innerHTML = `<div class="error">Error loading articles: ${error.message}</div>`;
-      }
-    }
-
-    // Toggle source section visibility
-    function toggleSource(sourceName) {
-      const id = sourceName.replace(/[^a-zA-Z0-9]/g, '-');
-      const content = document.getElementById(`content-${id}`);
-      const toggle = document.getElementById(`toggle-${id}`);
-      
-      content.classList.toggle('expanded');
-      toggle.classList.toggle('expanded');
-    }
-
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadFavorites();
-      await loadArticles();
-    });
-  </script>
+    </script>
 </body>
 </html>
