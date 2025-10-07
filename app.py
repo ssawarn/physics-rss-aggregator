@@ -60,12 +60,12 @@ def filter_and_group_recent(items, cutoff_days=60):
                 grouped.setdefault(src, []).append(item)
     return grouped
 
-def refresh_daily_cache():
+async def refresh_daily_cache():
     """Refresh the daily cache by fetching all RSS feeds."""
     global DAILY_CACHE
     try:
         print(f"[{datetime.now()}] Starting daily RSS cache refresh...")
-        items = asyncio.run(aggregate_all())
+        items = await aggregate_all()
         with DAILY_CACHE_LOCK:
             DAILY_CACHE['items'] = items
             DAILY_CACHE['last_updated'] = datetime.now().isoformat()
@@ -73,6 +73,8 @@ def refresh_daily_cache():
         print(f"[{datetime.now()}] Daily cache refresh complete. Total items: {len(items)}")
     except Exception as e:
         print(f"[{datetime.now()}] Error refreshing daily cache: {e}")
+        import traceback
+        traceback.print_exc()
 
 def schedule_daily_refresh():
     """Background thread to refresh cache at 1 AM every day."""
@@ -90,14 +92,14 @@ def schedule_daily_refresh():
         time.sleep(sleep_seconds)
         
         # Refresh the cache
-        refresh_daily_cache()
+        asyncio.run(refresh_daily_cache())
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize cache on startup and start background refresh thread."""
     print(f"[{datetime.now()}] Application starting up...")
     # Initial cache load
-    refresh_daily_cache()
+    await refresh_daily_cache()
     # Start background thread for daily refresh
     refresh_thread = threading.Thread(target=schedule_daily_refresh, daemon=True)
     refresh_thread.start()
@@ -198,7 +200,7 @@ def get_all_rss(force_refresh: bool = False):
     
     # If force_refresh is requested, refresh the cache
     if force_refresh:
-        refresh_daily_cache()
+        asyncio.create_task(refresh_daily_cache())
     
     with DAILY_CACHE_LOCK:
         return JSONResponse(content={
@@ -211,11 +213,11 @@ def get_all_rss(force_refresh: bool = False):
 @app.post("/refresh-cache")
 def manual_refresh_cache():
     """Manually trigger cache refresh."""
-    refresh_daily_cache()
+    asyncio.create_task(refresh_daily_cache())
     with DAILY_CACHE_LOCK:
         return JSONResponse(content={
             "status": "success",
-            "message": "Cache refreshed successfully",
+            "message": "Cache refresh triggered",
             "last_updated": DAILY_CACHE['last_updated'],
             "count": DAILY_CACHE['count']
         })
