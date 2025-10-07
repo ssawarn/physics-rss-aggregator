@@ -253,7 +253,7 @@
         
         async function loadArticles() {
             try {
-                const response = await fetch('/api/articles');
+                const response = await fetch('/all-rss');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
