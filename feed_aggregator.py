@@ -101,8 +101,8 @@ async def aggregate(topic: str) -> List[Dict[str, Any]]:
     logger.info(f"Found {len(topic_feeds)} RSS feeds to process")
     
     # Calculate date threshold (2 months ago for filtering)
-    two_months_ago = datetime.now() - timedelta(days=60)
-    six_months_ago = datetime.now() - timedelta(days=70)
+    two_months_ago = datetime.now() - timedelta(days=30)
+    six_months_ago = datetime.now() - timedelta(days=60)
     
     logger.info(f"Date filters: 2-month threshold: {two_months_ago}, 6-month threshold: {six_months_ago}")
     
