@@ -155,7 +155,6 @@
         
         <div id="feeds"></div>
     </div>
-
     <script>
         function toggleSection(header) {
             const content = header.nextElementSibling;
@@ -168,13 +167,12 @@
                 header.classList.add('active');
             }
         }
-
         async function loadFeeds() {
             try {
                 const response = await fetch('/all-rss');
                 const data = await response.json();
                 
-                displayFeeds(data.feeds);
+                displayFeeds(data.items);
                 updateStats(data);
             } catch (error) {
                 console.error('Error loading feeds:', error);
@@ -182,7 +180,6 @@
                     '<p style="text-align: center; color: #e74c3c; padding: 20px;">Error loading feeds. Please refresh the page.</p>';
             }
         }
-
         function displayFeeds(feeds) {
             const feedsContainer = document.getElementById('feeds');
             
@@ -205,7 +202,7 @@
                         ${source.articles.map(article => `
                             <div class="article">
                                 <div class="article-title">
-                                    <a href="${escapeHtml(article.link)}" target="_blank" rel="noopener noreferrer">
+                                    <a href="${article.link}" target="_blank" rel="noopener noreferrer">
                                         ${escapeHtml(article.title)}
                                     </a>
                                 </div>
@@ -217,13 +214,11 @@
                 </div>
             `).join('');
         }
-
         function updateStats(data) {
-            const totalArticles = data.feeds.reduce((sum, source) => sum + source.articles.length, 0);
+            const totalArticles = data.items.reduce((sum, source) => sum + source.articles.length, 0);
             const statsElement = document.getElementById('stats');
-            statsElement.textContent = `${data.feeds.length} sources • ${totalArticles} articles • Last updated: ${formatDate(data.last_updated)}`;
+            statsElement.textContent = `${data.items.length} sources • ${totalArticles} articles • Last updated: ${formatDate(data.last_updated)}`;
         }
-
         function formatDate(dateString) {
             const date = new Date(dateString);
             const now = new Date();
@@ -242,13 +237,11 @@
                 return date.toLocaleDateString();
             }
         }
-
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
         loadFeeds();
         setInterval(loadFeeds, 300000);
     </script>
