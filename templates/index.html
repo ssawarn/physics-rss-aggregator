@@ -68,127 +68,81 @@
         
         .source-title {
             font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 4px;
+            font-weight: 600;
         }
         
-        .source-count {
+        .article-count {
+            background: rgba(255,255,255,0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
             font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .collapse-indicator {
-            font-size: 16px;
-            transition: transform 0.3s ease;
-            display: inline-block;
-            transform-origin: center;
-        }
-        
-        /* Arrow points right when collapsed (default) */
-        .collapse-indicator.collapsed {
-            transform: rotate(-90deg);
-        }
-        
-        /* Arrow points down when expanded */
-        .collapse-indicator:not(.collapsed) {
-            transform: rotate(0deg);
         }
         
         .source-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-            padding: 0 20px;
+            transition: max-height 0.3s ease;
         }
         
-        .source-content:not(.collapsed) {
-            max-height: 10000px;
+        .article {
             padding: 20px;
-        }
-        
-        .item {
             border-bottom: 1px solid #eee;
-            padding: 20px 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
         }
         
-        .item:last-child {
+        .article:last-child {
             border-bottom: none;
         }
         
-        .item-content {
-            flex: 1;
-        }
-        
-        .item-title {
+        .article-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 8px;
         }
         
-        .item-title a {
+        .article-title a {
             color: #2c3e50;
             text-decoration: none;
-            font-weight: 500;
-            line-height: 1.4;
+            transition: color 0.2s ease;
         }
         
-        .item-title a:hover {
+        .article-title a:hover {
             color: #3498db;
-            text-decoration: underline;
         }
         
-        .item-meta {
-            color: #666;
+        .article-date {
+            color: #7f8c8d;
             font-size: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
-        .item-abstract {
+        .article-summary {
             color: #555;
             font-size: 14px;
             line-height: 1.5;
         }
         
-        .star-btn {
-            background: none;
-            border: 2px solid #ddd;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.3s ease;
-            min-width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 20px;
         }
         
-        .star-btn:hover {
-            border-color: #3498db;
-            color: #3498db;
+        .source-header.active .toggle-icon {
+            transform: rotate(180deg);
         }
         
-        .star-btn.starred {
-            background: #3498db;
-            border-color: #3498db;
-            color: white;
-        }
-        
-        .error {
-            background: #e74c3c;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .source-header {
+                padding: 12px 15px;
+            }
+            
+            .article {
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -196,129 +150,107 @@
     <div class="container">
         <header>
             <h1>Physics RSS Aggregator</h1>
-            <div id="stats">Loading articles...</div>
+            <div id="stats"></div>
         </header>
-        <main>
-            <div id="content">
-                <div class="loading">Loading articles from RSS feeds...</div>
-            </div>
-        </main>
+        
+        <div id="feeds"></div>
     </div>
+
     <script>
-        let favoriteItems = [];
-        
-        function loadFavorites() {
-            const stored = localStorage.getItem('favoriteItems');
-            favoriteItems = stored ? JSON.parse(stored) : [];
-        }
-        
-        function saveFavorites() {
-            localStorage.setItem('favoriteItems', JSON.stringify(favoriteItems));
-        }
-        
-        function toggleFavorite(link) {
-            const index = favoriteItems.indexOf(link);
-            if (index > -1) {
-                favoriteItems.splice(index, 1);
-            } else {
-                favoriteItems.push(link);
-            }
-            saveFavorites();
-            updateStarButtons();
-        }
-        
-        function updateStarButtons() {
-            document.querySelectorAll('.star-btn').forEach(btn => {
-                const link = btn.dataset.link;
-                if (favoriteItems.includes(link)) {
-                    btn.classList.add('starred');
-                    btn.textContent = '★';
-                } else {
-                    btn.classList.remove('starred');
-                    btn.textContent = '☆';
-                }
-            });
-        }
-        
-        function toggleSection(sourceIndex) {
-            const content = document.querySelector(`[data-source-index="${sourceIndex}"]`);
-            const indicator = document.querySelector(`[data-indicator-index="${sourceIndex}"]`);
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
             
-            if (content && indicator) {
-                content.classList.toggle('collapsed');
-                indicator.classList.toggle('collapsed');
+            if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                content.style.maxHeight = '0px';
+                header.classList.remove('active');
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                header.classList.add('active');
             }
         }
-        
-        async function loadArticles() {
+
+        async function loadFeeds() {
             try {
-                const response = await fetch('/all-rss');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                const response = await fetch('/feeds');
                 const data = await response.json();
-                const allItems = data.items || [];
                 
-                // Update stats
-                const uniqueSources = [...new Set(allItems.map(item => item.source))];
-                document.getElementById('stats').textContent = 
-                    `${allItems.length} articles from ${uniqueSources.length} sources`;
-                
-                // Group items by source
-                function groupBySource(items) {
-                    const sourcesMap = {};
-                    items.forEach(item => {
-                        if (!sourcesMap[item.source]) sourcesMap[item.source] = [];
-                        sourcesMap[item.source].push(item);
-                    });
-                    return Object.entries(sourcesMap).map(([name, items]) => ({
-                        name,
-                        count: items.length,
-                        items
-                    }));
-                }
-                const groupedSources = groupBySource(allItems);
-                
-                // Render grouped by source with collapsed default state
-                const contentHtml = groupedSources.map((source, sourceIndex) => `
-                    <div class="source-section">
-                        <div class="source-header" onclick="toggleSection(${sourceIndex})">
-                            <div>
-                                <div class="source-title">${source.name}</div>
-                                <div class="source-count">${source.count} articles</div>
-                            </div>
-                            <span class="collapse-indicator collapsed" data-indicator-index="${sourceIndex}">▼</span>
-                        </div>
-                        <div class="source-content collapsed" data-source-index="${sourceIndex}">
-                            ${source.items.map(item => `
-                                <div class="item">
-                                    <div class="item-content">
-                                        <div class="item-title">
-                                            <a href="${item.link}" target="_blank">${item.title}</a>
-                                        </div>
-                                        <div class="item-meta">${item.published}</div>
-                                        ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
-                                    </div>
-                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
-                                </div>
-                            `).join('')}
+                displayFeeds(data.feeds);
+                updateStats(data);
+            } catch (error) {
+                console.error('Error loading feeds:', error);
+                document.getElementById('feeds').innerHTML = 
+                    '<p style="text-align: center; color: #e74c3c; padding: 20px;">Error loading feeds. Please refresh the page.</p>';
+            }
+        }
+
+        function displayFeeds(feeds) {
+            const feedsContainer = document.getElementById('feeds');
+            
+            if (!feeds || feeds.length === 0) {
+                feedsContainer.innerHTML = 
+                    '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No articles available yet. Please check back later.</p>';
+                return;
+            }
+            
+            feedsContainer.innerHTML = feeds.map(source => `
+                <div class="source-section">
+                    <div class="source-header" onclick="toggleSection(this)">
+                        <span class="source-title">${escapeHtml(source.source)}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="article-count">${source.articles.length} articles</span>
+                            <span class="toggle-icon">▼</span>
                         </div>
                     </div>
-                `).join('');
-                
-                document.getElementById('content').innerHTML = contentHtml;
-                updateStarButtons();
-            } catch (error) {
-                document.getElementById('content').innerHTML = `<div class="error">Error loading articles: ${error.message}</div>`;
+                    <div class="source-content">
+                        ${source.articles.map(article => `
+                            <div class="article">
+                                <div class="article-title">
+                                    <a href="${escapeHtml(article.link)}" target="_blank" rel="noopener noreferrer">
+                                        ${escapeHtml(article.title)}
+                                    </a>
+                                </div>
+                                <div class="article-date">${formatDate(article.published)}</div>
+                                ${article.summary ? `<div class="article-summary">${escapeHtml(article.summary)}</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(data) {
+            const totalArticles = data.feeds.reduce((sum, source) => sum + source.articles.length, 0);
+            const statsElement = document.getElementById('stats');
+            statsElement.textContent = `${data.feeds.length} sources • ${totalArticles} articles • Last updated: ${formatDate(data.last_updated)}`;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 60) {
+                return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            } else if (diffDays < 7) {
+                return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
             }
         }
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            loadFavorites();
-            await loadArticles();
-        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadFeeds();
+        setInterval(loadFeeds, 300000);
     </script>
 </body>
 </html>
