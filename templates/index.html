@@ -37,159 +37,123 @@
             margin-bottom: 10px;
         }
         
-        #stats {
-            color: #666;
-            font-size: 14px;
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
         }
         
-        .source-section {
+        .articles {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .article {
             background: white;
-            margin-bottom: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         
-        .source-header {
-            background: #3498db;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.3s ease;
+        .article details {
+            padding: 0;
         }
         
-        .source-header:hover {
-            background: #2980b9;
-        }
-        
-        .source-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        
-        .source-count {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .collapse-indicator {
-            font-size: 16px;
-            transition: transform 0.3s ease;
-            display: inline-block;
-            transform-origin: center;
-        }
-        
-        /* Arrow points right when collapsed (default) */
-        .collapse-indicator.collapsed {
-            transform: rotate(-90deg);
-        }
-        
-        /* Arrow points down when expanded */
-        .collapse-indicator:not(.collapsed) {
-            transform: rotate(0deg);
-        }
-        
-        .source-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-            padding: 0 20px;
-        }
-        
-        .source-content:not(.collapsed) {
-            max-height: none;
+        .article summary {
             padding: 20px;
-            overflow: visible;
-        }
-        
-        .item {
+            cursor: pointer;
+            list-style: none;
+            background: white;
             border-bottom: 1px solid #eee;
-            padding: 20px 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
+            position: relative;
         }
         
-        .item:last-child {
-            border-bottom: none;
+        .article summary::-webkit-details-marker {
+            display: none;
         }
         
-        .item-content {
-            flex: 1;
+        .article summary::after {
+            content: '▶';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.2s ease;
+            color: #7f8c8d;
         }
         
-        .item-title {
-            margin-bottom: 8px;
+        .article details[open] summary::after {
+            transform: translateY(-50%) rotate(90deg);
         }
         
-        .item-title a {
+        .article-title {
+            font-size: 1.3em;
+            font-weight: 600;
             color: #2c3e50;
+            margin-bottom: 8px;
             text-decoration: none;
-            font-weight: 500;
-            line-height: 1.4;
+            display: block;
         }
         
-        .item-title a:hover {
+        .article-title:hover {
             color: #3498db;
-            text-decoration: underline;
         }
         
-        .item-meta {
-            color: #666;
-            font-size: 14px;
+        .article-meta {
+            font-size: 0.9em;
+            color: #7f8c8d;
             margin-bottom: 10px;
         }
         
-        .item-abstract {
-            color: #555;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .star-btn {
-            background: none;
-            border: 2px solid #ddd;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.3s ease;
-            min-width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .star-btn:hover {
-            border-color: #3498db;
-            color: #3498db;
-        }
-        
-        .star-btn.starred {
-            background: #3498db;
-            border-color: #3498db;
-            color: white;
-        }
-        
-        .error {
-            background: #e74c3c;
-            color: white;
+        .article-details {
             padding: 20px;
-            border-radius: 8px;
-            text-align: center;
+            border-top: 1px solid #eee;
+            background: #fafafa;
         }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
+        .article-abstract {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .article-authors {
+            font-size: 0.9em;
             color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .article-link {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        
+        .article-link:hover {
+            background: #2980b9;
+        }
+        
+        .no-articles {
+            background: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .stats {
+            background: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #7f8c8d;
+            text-align: center;
+            font-size: 0.95em;
         }
     </style>
 </head>
@@ -197,129 +161,49 @@
     <div class="container">
         <header>
             <h1>Q-phys bulletin</h1>
-            <div id="stats">Loading articles...</div>
+            <p class="subtitle">Latest Physics Research Papers</p>
         </header>
-        <main>
-            <div id="content">
-                <div class="loading">Loading articles from RSS feeds...</div>
-            </div>
-        </main>
-    </div>
-    <script>
-        let favoriteItems = [];
         
-        function loadFavorites() {
-            const stored = localStorage.getItem('favoriteItems');
-            favoriteItems = stored ? JSON.parse(stored) : [];
-        }
+        <div class="stats">
+            <p>{{ articles|length }} articles available</p>
+        </div>
         
-        function saveFavorites() {
-            localStorage.setItem('favoriteItems', JSON.stringify(favoriteItems));
-        }
-        
-        function toggleFavorite(link) {
-            const index = favoriteItems.indexOf(link);
-            if (index > -1) {
-                favoriteItems.splice(index, 1);
-            } else {
-                favoriteItems.push(link);
-            }
-            saveFavorites();
-            updateStarButtons();
-        }
-        
-        function updateStarButtons() {
-            document.querySelectorAll('.star-btn').forEach(btn => {
-                const link = btn.dataset.link;
-                if (favoriteItems.includes(link)) {
-                    btn.classList.add('starred');
-                    btn.textContent = '★';
-                } else {
-                    btn.classList.remove('starred');
-                    btn.textContent = '☆';
-                }
-            });
-        }
-        
-        function toggleSection(sourceIndex) {
-            const content = document.querySelector(`[data-source-index="${sourceIndex}"]`);
-            const indicator = document.querySelector(`[data-indicator-index="${sourceIndex}"]`);
-            
-            if (content && indicator) {
-                content.classList.toggle('collapsed');
-                indicator.classList.toggle('collapsed');
-            }
-        }
-        
-        async function loadArticles() {
-            try {
-                const response = await fetch('/all-rss');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const allItems = data.items || [];
-                
-                // Update stats
-                const uniqueSources = [...new Set(allItems.map(item => item.source))];
-                document.getElementById('stats').textContent = 
-                    `${allItems.length} articles from ${uniqueSources.length} sources`;
-                
-                // Group items by source
-                function groupBySource(items) {
-                    const sourcesMap = {};
-                    items.forEach(item => {
-                        if (!sourcesMap[item.source]) sourcesMap[item.source] = [];
-                        sourcesMap[item.source].push(item);
-                    });
-                    return Object.entries(sourcesMap).map(([name, items]) => ({
-                        name,
-                        count: items.length,
-                        items
-                    }));
-                }
-                const groupedSources = groupBySource(allItems);
-                
-                // Render grouped by source with collapsed default state
-                const contentHtml = groupedSources.map((source, sourceIndex) => `
-                    <div class="source-section">
-                        <div class="source-header" onclick="toggleSection(${sourceIndex})">
-                            <div>
-                                <div class="source-title">${source.name}</div>
-                                <div class="source-count">${source.count} articles</div>
+        <div class="articles">
+            {% if articles %}
+                {% for article in articles %}
+                <div class="article">
+                    <details>
+                        <summary>
+                            <a href="{{ article.link }}" class="article-title" target="_blank">{{ article.title }}</a>
+                            <div class="article-meta">
+                                Published: {{ article.published }}
                             </div>
-                            <span class="collapse-indicator collapsed" data-indicator-index="${sourceIndex}">▼</span>
-                        </div>
-                        <div class="source-content collapsed" data-source-index="${sourceIndex}">
-                            ${source.items.map(item => `
-                                <div class="item">
-                                    <div class="item-content">
-                                        <div class="item-title">
-                                            <a href="${item.link}" target="_blank">${item.title}</a>
-                                        </div>
-                                        <div class="item-meta">${item.published}</div>
-                                        ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
-                                    </div>
-                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
+                        </summary>
+                        <div class="article-details">
+                            {% if article.summary %}
+                                <div class="article-abstract">
+                                    <strong>Abstract:</strong><br>
+                                    {{ article.summary|safe }}
                                 </div>
-                            `).join('')}
+                            {% endif %}
+                            {% if article.authors %}
+                                <div class="article-authors">
+                                    <strong>Authors:</strong> {{ article.authors|join(', ') }}
+                                </div>
+                            {% endif %}
+                            <a href="{{ article.link }}" class="article-link" target="_blank">
+                                Read Full Paper
+                            </a>
                         </div>
-                    </div>
-                `).join('');
-                
-                document.getElementById('content').innerHTML = contentHtml;
-                updateStarButtons();
-            } catch (error) {
-                document.getElementById('content').innerHTML = `<div class="error">Error loading articles: ${error.message}</div>`;
-            }
-        }
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            loadFavorites();
-            await loadArticles();
-        });
-    </script>
+                    </details>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-articles">
+                    <p>No articles available at the moment. Please check back later.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>
