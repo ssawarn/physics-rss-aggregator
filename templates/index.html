@@ -294,15 +294,16 @@
                         <div class="source-content collapsed" data-source-index="${sourceIndex}">
                             ${source.items.map(item => `
                                 <div class="item">
-                                    <div class="item-content">
-                                        <div class="item-title">
-                                            <a href="${item.link}" target="_blank">${item.title}</a>
-                                        </div>
-                                        <div class="item-meta">${item.published}</div>
-                                        ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
-                                    </div>
-                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
-                                </div>
+<details class="item-content">
+<summary class="item-title">${item.title}</summary>
+<div class="item-meta">
+${item.published}
+· <a href="${item.link}" target="_blank" rel="noopener">Open link</a>
+</div>
+${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
+</details>
+<button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
+</div>
                             `).join('')}
                         </div>
                     </div>
