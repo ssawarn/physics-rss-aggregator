@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics RSS Aggregator</title>
+    <title>Q-phys bulletin</title>
     <style>
         * {
             margin: 0;
@@ -12,10 +12,10 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f5f5f5;
+            background: #f5f5f5;
         }
         
         .container {
@@ -25,108 +25,80 @@
         }
         
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 0;
-            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         h1 {
-            font-size: 2.5em;
+            color: #2c3e50;
             margin-bottom: 10px;
         }
         
-        .subtitle {
-            font-size: 1.2em;
-            opacity: 0.9;
+        #stats {
+            color: #666;
+            font-size: 14px;
         }
         
-        .filters {
+        .source-section {
             background: white;
-            padding: 20px;
+            margin-bottom: 20px;
             border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .filter-group {
-            margin-bottom: 15px;
-        }
-        
-        .filter-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-        
-        select, input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        button {
-            background: #667eea;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s ease;
-        }
-        
-        button:hover {
-            background: #5568d3;
-        }
-        
-        .source-group {
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 30px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         
         .source-header {
-            background: #667eea;
+            background: #3498db;
             color: white;
-            padding: 20px;
-            cursor: pointer;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease;
         }
         
         .source-header:hover {
-            background: #5568d3;
+            background: #2980b9;
         }
         
-        .source-header h2 {
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .source-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
         
-        .toggle-icon {
-            font-size: 1.2em;
+        .source-count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .collapse-indicator {
+            font-size: 16px;
             transition: transform 0.3s ease;
+            display: inline-block;
+            transform-origin: center;
+        }
+        
+        /* Arrow points right when collapsed (default) */
+        .collapse-indicator.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        /* Arrow points down when expanded */
+        .collapse-indicator:not(.collapsed) {
+            transform: rotate(0deg);
         }
         
         .source-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            padding: 0 20px;
         }
         
         .source-content:not(.collapsed) {
@@ -153,8 +125,6 @@
         
         .item-title {
             margin-bottom: 8px;
-            cursor: pointer;
-            user-select: none;
         }
         
         .item-title a {
@@ -168,40 +138,6 @@
             color: #3498db;
             text-decoration: underline;
         }
-        
-        /* New CSS for collapsible feature */
-        .item-details {
-            overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-        }
-        
-        .item.expanded .item-details {
-            max-height: 1000px;
-            opacity: 1;
-        }
-        
-        .item:not(.expanded) .item-details {
-            max-height: 0;
-            opacity: 0;
-        }
-        
-        .item-title::before {
-            content: '▼';
-            display: inline-block;
-            margin-right: 8px;
-            font-size: 0.8em;
-            transition: transform 0.3s ease;
-            color: #667eea;
-        }
-        
-        .item.expanded .item-title::before {
-            transform: rotate(180deg);
-        }
-        
-        .item:not(.expanded) .item-title::before {
-            transform: rotate(-90deg);
-        }
-        /* End new CSS */
         
         .item-meta {
             color: #666;
@@ -242,123 +178,148 @@
             color: white;
         }
         
-        .no-results {
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .loading {
             text-align: center;
             padding: 40px;
             color: #666;
-            font-size: 1.2em;
-        }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-            
-            .source-header h2 {
-                font-size: 1.2em;
-            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>📚 Physics RSS Aggregator</h1>
-            <p class="subtitle">Stay updated with the latest physics research</p>
-        </div>
-    </header>
-    
     <div class="container">
-        <div class="filters">
-            <form method="get" action="/">
-                <div class="filter-group">
-                    <label for="source">Source:</label>
-                    <select name="source" id="source">
-                        <option value="">All Sources</option>
-                        {% for source in sources %}
-                        <option value="{{ source }}" {% if selected_source == source %}selected{% endif %}>{{ source }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="search">Search:</label>
-                    <input type="text" name="search" id="search" placeholder="Search articles..." value="{{ search_query }}">
-                </div>
-                
-                <button type="submit">Apply Filters</button>
-            </form>
-        </div>
-        
-        {% if articles %}
-            {% for source, items in articles.items() %}
-            <div class="source-group">
-                <div class="source-header" onclick="toggleSource(this)">
-                    <h2>{{ source }} ({{ items|length }})</h2>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="source-content">
-                    {% for item in items %}
-                    <div class="item" data-id="{{ item.id }}">
-                        <div class="item-content">
-                            <div class="item-title" onclick="toggleItem(this)">
-                                <a href="{{ item.link }}" target="_blank" onclick="event.stopPropagation()">{{ item.title }}</a>
-                            </div>
-                            <div class="item-details">
-                                <div class="item-meta">
-                                    {% if item.authors %}
-                                    <strong>Authors:</strong> {{ item.authors | join(', ') }}<br>
-                                    {% endif %}
-                                    <strong>Published:</strong> {{ item.published }}
-                                </div>
-                                {% if item.abstract %}
-                                <div class="item-abstract">{{ item.abstract }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <button class="star-btn" onclick="toggleStar(this, '{{ item.id }}')" title="Star this article">
-                            ⭐
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
+        <header>
+            <h1>Q-phys bulletin</h1>
+            <div id="stats">Loading articles...</div>
+        </header>
+        <main>
+            <div id="content">
+                <div class="loading">Loading articles from RSS feeds...</div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="no-results">
-                <p>No articles found. Try adjusting your filters.</p>
-            </div>
-        {% endif %}
+        </main>
     </div>
-    
     <script>
-        function toggleSource(header) {
-            const content = header.nextElementSibling;
-            const icon = header.querySelector('.toggle-icon');
-            content.classList.toggle('collapsed');
-            icon.style.transform = content.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
+        let favoriteItems = [];
+        
+        function loadFavorites() {
+            const stored = localStorage.getItem('favoriteItems');
+            favoriteItems = stored ? JSON.parse(stored) : [];
         }
         
-        function toggleStar(button, articleId) {
-            button.classList.toggle('starred');
-            // Here you can add AJAX call to save starred status to backend
-            console.log('Toggled star for article:', articleId);
+        function saveFavorites() {
+            localStorage.setItem('favoriteItems', JSON.stringify(favoriteItems));
         }
         
-        // New JS function for collapsible article details
-        function toggleItem(titleElement) {
-            const item = titleElement.closest('.item');
-            item.classList.toggle('expanded');
+        function toggleFavorite(link) {
+            const index = favoriteItems.indexOf(link);
+            if (index > -1) {
+                favoriteItems.splice(index, 1);
+            } else {
+                favoriteItems.push(link);
+            }
+            saveFavorites();
+            updateStarButtons();
         }
         
-        // Initialize all items as expanded by default (progressive enhancement)
-        document.addEventListener('DOMContentLoaded', function() {
-            const items = document.querySelectorAll('.item');
-            items.forEach(item => {
-                item.classList.add('expanded');
+        function updateStarButtons() {
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                const link = btn.dataset.link;
+                if (favoriteItems.includes(link)) {
+                    btn.classList.add('starred');
+                    btn.textContent = '★';
+                } else {
+                    btn.classList.remove('starred');
+                    btn.textContent = '☆';
+                }
             });
+        }
+        
+        function toggleSection(sourceIndex) {
+            const content = document.querySelector(`[data-source-index="${sourceIndex}"]`);
+            const indicator = document.querySelector(`[data-indicator-index="${sourceIndex}"]`);
+            
+            if (content && indicator) {
+                content.classList.toggle('collapsed');
+                indicator.classList.toggle('collapsed');
+            }
+        }
+        
+        async function loadArticles() {
+            try {
+                const response = await fetch('/all-rss');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const allItems = data.items || [];
+                
+                // Update stats
+                const uniqueSources = [...new Set(allItems.map(item => item.source))];
+                document.getElementById('stats').textContent = 
+                    `${allItems.length} articles from ${uniqueSources.length} sources`;
+                
+                // Group items by source
+                function groupBySource(items) {
+                    const sourcesMap = {};
+                    items.forEach(item => {
+                        if (!sourcesMap[item.source]) sourcesMap[item.source] = [];
+                        sourcesMap[item.source].push(item);
+                    });
+                    return Object.entries(sourcesMap).map(([name, items]) => ({
+                        name,
+                        count: items.length,
+                        items
+                    }));
+                }
+                const groupedSources = groupBySource(allItems);
+                
+                // Render grouped by source with collapsed default state
+                const contentHtml = groupedSources.map((source, sourceIndex) => `
+                    <div class="source-section">
+                        <div class="source-header" onclick="toggleSection(${sourceIndex})">
+                            <div>
+                                <div class="source-title">${source.name}</div>
+                                <div class="source-count">${source.count} articles</div>
+                            </div>
+                            <span class="collapse-indicator collapsed" data-indicator-index="${sourceIndex}">▼</span>
+                        </div>
+                        <div class="source-content collapsed" data-source-index="${sourceIndex}">
+                            ${source.items.map(item => `
+                                <div class="item">
+                                    <div class="item-content">
+                                        <div class="item-title">
+                                            <a href="${item.link}" target="_blank">${item.title}</a>
+                                        </div>
+                                        <div class="item-meta">${item.published}</div>
+                                        ${item.abstract ? `<div class="item-abstract">${item.abstract}</div>` : ''}
+                                    </div>
+                                    <button class="star-btn" data-link="${item.link}" onclick="toggleFavorite('${item.link.replace(/'/g, "\\'")}')" >☆</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('content').innerHTML = contentHtml;
+                updateStarButtons();
+            } catch (error) {
+                document.getElementById('content').innerHTML = `<div class="error">Error loading articles: ${error.message}</div>`;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadFavorites();
+            await loadArticles();
         });
-        // End new JS
     </script>
 </body>
 </html>
